@@ -16,7 +16,8 @@ public class RecipeController {
         "generate 2 simple recipes using as many expiring items as possible, supplemented only by standard pantry staples " +
         "(salt, pepper, oil, flour, water, basic spices). " +
         "Return ONLY a valid JSON array of objects with keys: title, time, usedExpiringItems (array of strings), " +
-        "ingredients (array of strings), steps (array of strings). No markdown formatting or extra text.";
+        "ingredients (array of strings), steps (array of strings). No markdown formatting or extra text, " +
+        "Prioritize items with the fewest days left.”";
 
     private final ObjectMapper mapper;
     private final RestClient client = RestClient.create();
@@ -25,9 +26,12 @@ public class RecipeController {
         this.mapper = mapper;
     }
 
+    public record PantryEntry(String name, long daysLeft) {}
+
     @PostMapping("/api/recipes")
-    public List> generateRecipes(@RequestBody List<FoodItem> items) throws Exception {
+    public List<Map<String, Object>> generateRecipes(@RequestBody List<PantryEntry> items) throws Exception {
         String key = System.getenv("ANTHROPIC_API_KEY");
+        if (key == null || key.isBlank()) throw new IllegalStateException("ANTHROPIC_API_KEY not set");
         
         // Build inventory summary for prompt
         StringBuilder inventoryText = new StringBuilder("Current Pantry Items:\n");
@@ -37,11 +41,11 @@ public class RecipeController {
         }
 
         Map<String, Object> body = Map.of(
-            "model", "claude-3-5-sonnet-20241022",
+            "model", "claude-sonnet-5-5",
             "max_tokens", 1500,
             "messages", List.of(Map.of(
                 "role", "user",
-                "content", PROMPT + "\n\n" + inventoryText.toString()
+                "content", PROMPT + "\n\n" + inventoryText
             ))
         );
 
@@ -59,7 +63,7 @@ public class RecipeController {
         text = text.replace("```json", "").replace("```", "").trim();
 
         @SuppressWarnings("unchecked")
-        List> recipes = mapper.readValue(text, List.class);
+        List<Map<String, Object>> recipes = mapper.readValue(text, List.class);
         return recipes;
     }
 }

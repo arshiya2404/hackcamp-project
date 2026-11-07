@@ -32,6 +32,7 @@ public class ReceiptController {
     @PostMapping("/api/receipt")
     public List<FoodItem> scan(@RequestParam("image") MultipartFile image) throws Exception {
         String key = System.getenv("ANTHROPIC_API_KEY");
+        if (key == null || key.isBlank()) throw new IllegalStateException("ANTHROPIC_API_KEY not set");
         String b64 = Base64.getEncoder().encodeToString(image.getBytes());
         String mediaType = image.getContentType() != null ? image.getContentType() : "image/jpeg";
 
