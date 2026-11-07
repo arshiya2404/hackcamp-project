@@ -1,0 +1,6 @@
+[
+  {"name": "spinach", "storage": "fridge", "days": 5, "tip": "Keep in its container with a paper towel to absorb moisture."},
+  {"name": "milk", "storage": "fridge", "days": 7, "tip": "Store on a main shelf, not the door."},
+  {"name": "eggs", "storage": "fridge", "days": 28, "tip": "Keep in the carton on a shelf."},
+  {"name": "bananas", "storage": "counter", "days": 5, "tip": "Separate them to slow ripening."}
+]

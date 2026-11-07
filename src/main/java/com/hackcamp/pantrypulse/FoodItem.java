@@ -1,3 +1,5 @@
+package com.hackcamp.pantrypulse;
+
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 
@@ -68,11 +70,6 @@ public class FoodItem {
 
     // Checks if the item requires manual user review
     public boolean isNeedsReview() {
-        return needsReview;
-    }
-
-    // Alternate getter for whether the item requires review
-    public boolean getNeedsReview() {
         return needsReview;
     }
 
