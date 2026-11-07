@@ -17,7 +17,7 @@ public class RecipeController {
         "(salt, pepper, oil, flour, water, basic spices). " +
         "Return ONLY a valid JSON array of objects with keys: title, time, usedExpiringItems (array of strings), " +
         "ingredients (array of strings), steps (array of strings). No markdown formatting or extra text, " +
-        "Prioritize items with the fewest days left.”";
+        "Prioritize items with the fewest days left.";
 
     private final ObjectMapper mapper;
     private final RestClient client = RestClient.create();
@@ -35,9 +35,9 @@ public class RecipeController {
         
         // Build inventory summary for prompt
         StringBuilder inventoryText = new StringBuilder("Current Pantry Items:\n");
-        for (FoodItem item : items) {
-            inventoryText.append("- ").append(item.getName())
-                         .append(" (Expires in ").append(item.getDaysLeft()).append(" days)\n");
+        for (PantryEntry item : items) {
+            inventoryText.append("- ").append(item.name())
+                         .append(" (Expires in ").append(item.daysLeft()).append(" days)\n");
         }
 
         Map<String, Object> body = Map.of(
