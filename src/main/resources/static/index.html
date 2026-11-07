@@ -18,14 +18,20 @@
 
   <div id="list" class="space-y-3"></div>
 
+  <button id="cook" class="px-4 py-2 bg-green-700 text-white rounded my-4">What should I cook?</button>
+  <p id="cook-status" class="text-sm text-gray-500 mb-2"></p>
+  <div id="recipes" class="space-y-3"></div>
+
   <script>
+    let items = [];
+
     const colors = {
       RED: "bg-red-100 text-red-800",
       AMBER: "bg-amber-100 text-amber-800",
       GREEN: "bg-green-100 text-green-800"
     };
 
-    function render(items) {
+    function render(list) {
       items.sort((a, b) => a.daysLeft - b.daysLeft);
       document.getElementById("list").innerHTML = items.map(i => `
         <div class="bg-white rounded-xl p-4 shadow">
@@ -41,8 +47,32 @@
         </div>`).join("");
     }
 
+    document.getElementById("cook").onclick = async () => {
+  document.getElementById("cook-status").textContent = "Cooking up ideas...";
+  try {
+    const res = await fetch("/api/recipes", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(items.map(i => ({ name: i.name, daysLeft: i.daysLeft })))
+    });
+    if (!res.ok) throw new Error("Server error " + res.status);
+    const recipes = await res.json();
+    document.getElementById("recipes").innerHTML = recipes.map(r => `
+      <div class="bg-white rounded-xl p-4 shadow">
+        <p class="font-semibold">${r.title} <span class="text-sm text-gray-500">· ${r.time}</span></p>
+        <p class="text-sm text-green-700">Uses: ${r.usedExpiringItems.join(", ")}</p>
+        <p class="text-sm mt-1">${r.ingredients.join(", ")}</p>
+        <ol class="list-decimal ml-5 text-sm mt-1">${r.steps.map(s => `<li>${s}</li>`).join("")}</ol>
+      </div>`).join("");
+    document.getElementById("cook-status").textContent = "";
+  } catch (err) {
+    document.getElementById("cook-status").textContent = "Could not get recipes: " + err.message;
+  }
+};
+
     async function loadSample() {
       const res = await fetch("/api/pantry/sample");
+      items = await res.json(); 
       render(await res.json());
     }
 
@@ -55,7 +85,8 @@
       try {
         const res = await fetch("/api/receipt", { method: "POST", body: form });
         if (!res.ok) throw new Error("Server error " + res.status);
-        render(await res.json());
+        items = items.concat(await res.json()); 
+        render(items);
         document.getElementById("status").textContent = "";
       } catch (err) {
         document.getElementById("status").textContent = "Could not read the receipt: " + err.message;
