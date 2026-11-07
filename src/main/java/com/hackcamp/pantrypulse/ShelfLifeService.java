@@ -20,13 +20,26 @@ public class ShelfLifeService {
             }
         }
     }
-
+    
     public FoodItem createItem(String name, LocalDate purchaseDate) {
-        ShelfLifeEntry e = table.get(name.toLowerCase().trim());
+        String query = name.toLowerCase().trim();
+        ShelfLifeEntry e = table.get(query);
+        
+        if (e == null) {
+            // Simple keyword matching fallback
+            for (Map.Entry<String, ShelfLifeEntry> entry : table.entrySet()) {
+                if (query.contains(entry.getKey())) {
+                    e = entry.getValue();
+                    break;
+                }
+            }
+        }
+
         if (e == null) {
             return new FoodItem(name, purchaseDate, 5, "fridge",
                 "General estimate. Check the item and any printed date.", true);
         }
+
         return new FoodItem(name, purchaseDate, e.days(), e.storage(), e.tip(), false);
     }
 }

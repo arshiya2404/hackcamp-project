@@ -2,5 +2,9 @@
   {"name": "spinach", "storage": "fridge", "days": 5, "tip": "Keep in its container with a paper towel to absorb moisture."},
   {"name": "milk", "storage": "fridge", "days": 7, "tip": "Store on a main shelf, not the door."},
   {"name": "eggs", "storage": "fridge", "days": 28, "tip": "Keep in the carton on a shelf."},
-  {"name": "bananas", "storage": "counter", "days": 5, "tip": "Separate them to slow ripening."}
+  {"name": "bananas", "storage": "counter", "days": 5, "tip": "Separate them to slow ripening."},
+  {"name": "chicken breast", "storage": "fridge", "days": 2, "tip": "Store on the bottom shelf to prevent drips."},
+  {"name": "ground beef", "storage": "fridge", "days": 2, "tip": "Keep sealed or freeze if not cooking immediately."},
+  {"name": "avocado", "storage": "counter", "days": 4, "tip": "Store at room temp until ripe, then move to fridge."},
+  {"name": "bell pepper", "storage": "fridge", "days": 10, "tip": "Store unwashed in the crisper drawer."}
 ]
