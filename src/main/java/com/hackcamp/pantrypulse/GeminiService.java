@@ -48,7 +48,7 @@ public class GeminiService {
         String model = System.getenv("GEMINI_MODEL");
 
         if (model == null || model.isBlank()) {
-            model = "gemini-3.8-flash";
+            model = "gemini-3.5-flash-lite";
         }
 
         Map<String, Object> body = Map.of(
@@ -57,8 +57,15 @@ public class GeminiService {
                     "role", "user",
                     "parts", parts
                 )
+            ),
+            "generationConfig", Map.of(
+                "maxOutputTokens", 2048,
+                "responseMimeType", "application/json"
             )
         );
+
+        System.out.println("Calling Gemini model: " + model);
+        long started = System.nanoTime();
 
         String response = client.post()
             .uri(
@@ -70,6 +77,12 @@ public class GeminiService {
             .body(body)
             .retrieve()
             .body(String.class);
+
+            System.out.println(
+                "Gemini responded in "
+                + Duration.ofNanos(System.nanoTime() - started).toMillis()
+                + " ms"
+                );
 
         if (response == null || response.isBlank()) {
             throw new IllegalStateException("Gemini returned an empty response");
