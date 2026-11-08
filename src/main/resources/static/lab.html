@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>PantryPulse · Lab review</title>
+
+    <link rel="stylesheet" href="/css/lab.css" />
+    <script src="/js/lab.js" defer></script>
+  </head>
+
+  <body>
+    <main class="lab-page">
+      <header>
+        <a href="/">← Back to pantry</a>
+        <p class="brand">PantryPulse</p>
+      </header>
+
+      <p class="eyebrow">Health focus</p>
+      <h1>Your report, one step at a time.</h1>
+
+      <p>
+        Upload a report image, check every extracted value, then view supported
+        discussion topics.
+      </p>
+
+      <aside class="notice">
+        <strong>Use fictional reports while testing.</strong>
+        <p>
+          Uploaded images are sent to Google's Gemini API for extraction. This
+          app does not save the report to its database. Provider processing and
+          retention follow Google's applicable terms.
+        </p>
+      </aside>
+
+      <section class="panel">
+        <h2>1. Choose a report</h2>
+
+        <label for="report-image"> JPEG, PNG or WebP · maximum 5 MB </label>
+
+        <input
+          id="report-image"
+          type="file"
+          accept="image/jpeg,image/png,image/webp"
+        />
+
+        <label class="check">
+          <input id="consent-upload" type="checkbox" />
+          I understand that uploading sends this image to Gemini.
+        </label>
+
+        <div class="actions">
+          <button id="extract-button" type="button">Read report</button>
+
+          <button id="sample-button" type="button" class="secondary">
+            Try fictional sample
+          </button>
+        </div>
+      </section>
+
+      <p id="lab-status" role="status" aria-live="polite"></p>
+
+      <section id="review-section" class="panel" hidden>
+        <h2>2. Check your results</h2>
+
+        <p id="sample-notice" class="notice" hidden>
+          Fictional sample. Reference ranges are test fixtures, not clinical
+          guidance.
+        </p>
+
+        <p>
+          Compare every field with the original report. Keep UNKNOWN when no
+          flag is printed. Remove unreadable or nonnumeric results.
+        </p>
+
+        <div id="review-results"></div>
+
+        <form id="confirm-form">
+          <fieldset>
+            <legend>
+              Do you have a diagnosed condition or take medication?
+            </legend>
+
+            <label class="check">
+              <input type="radio" name="medical-context" value="yes" required />
+              Yes or unsure
+            </label>
+
+            <label class="check">
+              <input type="radio" name="medical-context" value="no" required />
+              No
+            </label>
+          </fieldset>
+
+          <label class="check">
+            <input id="enable-focus" type="checkbox" />
+            Show optional food discussion topics.
+          </label>
+
+          <label class="check">
+            <input id="confirmed-values" type="checkbox" required />
+            I checked all retained values, units, reference ranges, and flags
+            against the report.
+          </label>
+
+          <button id="confirm-button" type="submit">
+            Confirm and view focus
+          </button>
+        </form>
+      </section>
+
+      <section id="profile-section" class="panel" hidden>
+        <h2>3. Your discussion profile</h2>
+
+        <p id="profile-message"></p>
+        <div id="focus-list"></div>
+        <div id="profile-cards"></div>
+      </section>
+
+      <button id="clear-button" type="button" class="secondary">
+        Clear this session
+      </button>
+
+      <footer>
+        This prototype does not diagnose, set treatment targets, or recommend
+        medication or supplements. A normal flag does not establish that
+        everything is healthy. Review abnormal results with your clinician. Do
+        not use this app to assess urgent symptoms or critical results.
+      </footer>
+    </main>
+  </body>
+</html>
