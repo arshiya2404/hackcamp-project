@@ -40,7 +40,19 @@
       <p id="status" class="status" role="status"></p>
       <div class="layout">
         <section>
-          <h2 class="section-title">My fridge</h2>
+          <div class="storage-heading">
+            <h2 id="storage-title" class="section-title">My fridge</h2>
+
+            <button
+              id="switch-storage"
+              class="storage-switch"
+              type="button"
+              aria-label="Show pantry"
+              aria-controls="fridge-view pantry-view"
+            >
+              Pantry →
+            </button>
+          </div>
           <p id="pantry-count" class="section-description"></p>
 
           <div id="fridge-view" class="appliance">
@@ -60,6 +72,25 @@
             </section>
           </div>
 
+          <div id="pantry-view" class="pantry-cabinet" hidden>
+            <p class="cabinet-label">The pantry cupboard</p>
+
+            <section class="pantry-shelf">
+              <h3 class="compartment-label">Grains &amp; bread</h3>
+              <div id="grains-list" class="food-grid"></div>
+            </section>
+
+            <section class="pantry-shelf">
+              <h3 class="compartment-label">Cans, jars &amp; other staples</h3>
+              <div id="staples-list" class="food-grid"></div>
+            </section>
+
+            <section class="pantry-shelf">
+              <h3 class="compartment-label">Counter produce</h3>
+              <div id="counter-list" class="food-grid"></div>
+            </section>
+          </div>
+          
           <p class="hint">Tap a food for storage tips.</p>
 
           <div class="cook-panel">

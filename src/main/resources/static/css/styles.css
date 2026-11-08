@@ -416,3 +416,59 @@ h3 {
 .recipe-details li {
   margin-bottom: 7px;
 }
+
+.storage-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.storage-switch {
+  border: 1px solid var(--border);
+  background: white;
+  color: var(--sage);
+  border-radius: 20px;
+  padding: 6px 14px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.storage-switch:hover {
+  background: #e6f0df;
+}
+
+.storage-switch:focus-visible {
+  outline: 3px solid var(--sage);
+  outline-offset: 3px;
+}
+
+.pantry-cabinet {
+  background: #ece3d3;
+  border: 8px solid #d7cbb5;
+  border-radius: 18px;
+  padding: 16px;
+  box-shadow: 0 7px 0 #c8bba3;
+}
+
+.cabinet-label {
+  text-align: center;
+  color: #7c705b;
+  font: 18px Georgia, serif;
+  margin-bottom: 20px;
+}
+
+.pantry-shelf {
+  min-height: 110px;
+  padding-bottom: 18px;
+  border-bottom: 7px solid #cabb9e;
+  margin-bottom: 20px;
+}
+
+.pantry-shelf:last-child {
+  margin-bottom: 0;
+}
+
+[hidden] {
+  display: none !important;
+}

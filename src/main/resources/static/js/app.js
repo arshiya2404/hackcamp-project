@@ -1,5 +1,28 @@
 let items = [];
 
+let showingPantry = false;
+
+document.getElementById("switch-storage").onclick = () => {
+  showingPantry = !showingPantry;
+
+  document.getElementById("fridge-view").hidden = showingPantry;
+
+  document.getElementById("pantry-view").hidden = !showingPantry;
+
+  document.getElementById("storage-title").textContent = showingPantry
+    ? "My pantry"
+    : "My fridge";
+
+  const button = document.getElementById("switch-storage");
+
+  button.textContent = showingPantry ? "← Fridge" : "Pantry →";
+
+  button.setAttribute(
+    "aria-label",
+    showingPantry ? "Show fridge" : "Show pantry"
+  );
+};
+
 function escapeHtml(value) {
   return String(value ?? "").replace(
     /[&<>"']/g,
