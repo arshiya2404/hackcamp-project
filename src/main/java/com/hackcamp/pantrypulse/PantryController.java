@@ -19,7 +19,7 @@ public class PantryController {
 
     public record StoredItem(
             String name,
-            LocalDate purchaseDate) {
+            LocalDate purchaseDate) { 
     }
 
     @PostMapping("/api/pantry/recheck")

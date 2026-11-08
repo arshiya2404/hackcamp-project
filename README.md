@@ -2,7 +2,7 @@
 
 PantryPulse turns a grocery receipt into a smart fridge. It gives every item an expiry date and a green, amber or red chip, then suggests a recipe that uses what's about to expire and based on your lab results. If the user would like to track their health and are prone to feeling lightheaded or dizzy, the application also allows the user to upload a scan of their recent lab results where the application would suggest what available foods to eat to help stabilize their health. 
 
-Built for [HackCamp 2027].
+Built for [HackCamp 2026].
 
 ## The problem
 
