@@ -153,17 +153,62 @@ h3 {
   margin-bottom: 16px;
 }
 
-.fridge {
-  background: var(--light-green);
-  border: 9px solid #e4eae0;
-  border-radius: 30px;
-  padding: 16px;
-  min-height: 300px;
+.appliance {
+  background: #e4eae0;
+  border: 8px solid #d6dfd2;
+  border-radius: 28px;
+  overflow: hidden;
+  box-shadow: 0 7px 0 #c7d3c1;
+}
+
+.compartment {
+  position: relative;
+  padding: 18px 26px 20px 16px;
+}
+
+.compartment + .compartment {
+  border-top: 8px solid #d6dfd2;
+}
+
+.compartment::after {
+  content: "";
+  position: absolute;
+  right: 8px;
+  top: 20px;
+  width: 5px;
+  height: 38px;
+  background: #a0b198;
+  border-radius: 5px;
+}
+
+.compartment-label {
+  font-family: Arial, sans-serif;
+  font-size: 10px;
+  font-weight: bold;
+  letter-spacing: 1.3px;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin: 0 0 14px;
+}
+
+.freezer {
+  background: #eaf3f0;
+  min-height: 110px;
+}
+
+.fridge-main {
+  background: #dce8d2;
+  min-height: 190px;
+}
+
+.fresh-drawer {
+  background: #cfdfc1;
+  min-height: 120px;
 }
 
 .food-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
   align-items: start;
 }
@@ -212,6 +257,7 @@ h3 {
   border: 1px solid #e9ecdf;
   border-radius: 11px;
   padding: 14px;
+  min-width: 0;
 }
 
 .food-card summary {
@@ -265,6 +311,7 @@ h3 {
 
 .food-details p {
   margin-bottom: 7px;
+  overflow-wrap: anywhere;
 }
 
 .recipe-card {

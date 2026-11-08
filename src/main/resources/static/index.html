@@ -43,8 +43,21 @@
           <h2 class="section-title">My fridge</h2>
           <p id="pantry-count" class="section-description"></p>
 
-          <div class="fridge">
-            <div id="list" class="food-grid"></div>
+          <div id="fridge-view" class="appliance">
+            <section class="compartment freezer">
+              <h3 class="compartment-label">❄ Freezer</h3>
+              <div id="freezer-list" class="food-grid"></div>
+            </section>
+
+            <section class="compartment fridge-main">
+              <h3 class="compartment-label">Fridge shelves</h3>
+              <div id="list" class="food-grid"></div>
+            </section>
+
+            <section class="compartment fresh-drawer">
+              <h3 class="compartment-label">Fresh drawer</h3>
+              <div id="fresh-list" class="food-grid"></div>
+            </section>
           </div>
 
           <p class="hint">Tap a food for storage tips.</p>
