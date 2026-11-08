@@ -215,6 +215,65 @@
           gap: 30px;
         }
       }
+      .food-card {
+        background: #fffefa;
+        border: 1px solid #e9ecdf;
+        border-radius: 11px;
+        padding: 14px;
+      }
+
+      .food-card summary {
+        cursor: pointer;
+        list-style: none;
+      }
+
+      .food-card summary::-webkit-details-marker {
+        display: none;
+      }
+
+      .food-name {
+        display: block;
+        font-size: 12px;
+        font-weight: bold;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 9px;
+        overflow-wrap: anywhere;
+      }
+
+      .expiry-chip {
+        display: inline-block;
+        font-size: 10px;
+        padding: 3px 8px;
+        border-radius: 5px;
+      }
+
+      .expiry-red {
+        background: #ffdbd6;
+        color: #9c4038;
+      }
+
+      .expiry-amber {
+        background: #ffedb9;
+        color: #806018;
+      }
+
+      .expiry-green {
+        background: #e1eed3;
+        color: #45613c;
+      }
+
+      .food-details {
+        border-top: 1px dashed var(--border);
+        margin-top: 12px;
+        padding-top: 10px;
+        color: var(--muted);
+        font-size: 11px;
+      }
+
+      .food-details p {
+        margin-bottom: 7px;
+      }
     </style>
   </head>
   <body>
@@ -282,12 +341,6 @@
       <script>
         let items = [];
 
-        const colors = {
-          RED: "bg-red-100 text-red-800",
-          AMBER: "bg-amber-100 text-amber-800",
-          GREEN: "bg-green-100 text-green-800",
-        };
-
         function escapeHtml(value) {
           return String(value ?? "").replace(
             /[&<>"']/g,
@@ -304,32 +357,59 @@
 
         function render(list) {
           const sorted = [...list].sort((a, b) => a.daysLeft - b.daysLeft);
+
+          const soon = list.filter(
+            (i) => i.daysLeft >= 0 && i.daysLeft <= 2
+          ).length;
+
+          document.getElementById(
+            "pantry-count"
+          ).textContent = `${list.length} items · ${soon} needing attention soon`;
+
           document.getElementById("list").innerHTML = sorted
-            .map(
-              (i) => `
-        <div class="bg-white rounded-xl p-4 shadow">
-            <div class="flex justify-between items-center">
-                <span class="font-semibold">${escapeHtml(i.name)}</span>
-                <span class="text-sm px-2 py-1 rounded-full ${
-                  colors[i.color] ?? colors.AMBER
-                }">
-                    ${i.daysLeft < 0 ? "Expired" : i.daysLeft + " days left"}
-                    </span>
-                    </div>
-                    <p class="text-sm text-gray-500">
-                        Store: ${escapeHtml(i.storage)} · Use by ${escapeHtml(
-                i.expiryDate
-              )}
-                    </p>
-                    <p class="text-sm mt-1">${escapeHtml(i.tip)}</p>
-                    ${
-                      i.needsReview
-                        ? '<p class="text-xs text-amber-700 mt-1">Estimate. Please check.</p>'
-                        : ""
-                    }
-                </div>
-            `
-            )
+            .map((i) => {
+              const color =
+                i.daysLeft <= 2
+                  ? "expiry-red"
+                  : i.daysLeft <= 5
+                  ? "expiry-amber"
+                  : "expiry-green";
+
+              const label =
+                i.daysLeft < 0
+                  ? "Past estimated date"
+                  : i.daysLeft === 0
+                  ? "Estimated today"
+                  : `${i.daysLeft} day${i.daysLeft === 1 ? "" : "s"} left`;
+
+              return `
+        <article class="food-card">
+          <details>
+            <summary>
+              <span class="food-name">
+                ${escapeHtml(i.name)}
+              </span>
+              <span class="expiry-chip ${color}">
+                ${escapeHtml(label)}
+              </span>
+            </summary>
+
+            <div class="food-details">
+              <p>Store: ${escapeHtml(i.storage)}</p>
+              <p>
+                Estimated date: ${escapeHtml(i.expiryDate)}
+              </p>
+              <p>${escapeHtml(i.tip)}</p>
+              ${
+                i.needsReview
+                  ? "<p>Please check this general estimate.</p>"
+                  : ""
+              }
+            </div>
+          </details>
+        </article>
+      `;
+            })
             .join("");
         }
 
