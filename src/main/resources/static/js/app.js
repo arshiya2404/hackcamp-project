@@ -37,60 +37,124 @@ function escapeHtml(value) {
   );
 }
 
+function getStorageSection(item) {
+  const storage = String(item.storage ?? "").toLowerCase();
+  const name = String(item.name ?? "").toLowerCase();
+
+  const isProduce =
+    /\b(spinach|lettuce|kale|broccoli|carrot|carrots|pepper|peppers|cucumber|berries|strawberries|blueberries|apple|apples|avocado|avocados|banana|bananas|dragonfruit|tomato|tomatoes|orange|oranges|grape|grapes)\b/.test(
+      name
+    );
+
+  // Storage takes priority: frozen vegetables belong in the freezer.
+  if (/freez|frozen/.test(storage)) {
+    return "freezer-list";
+  }
+
+  if (/fridge|refrigerat|crisper|fresh drawer/.test(storage)) {
+    return isProduce ? "fresh-list" : "fridge-list";
+  }
+
+  if (/pantry|cupboard|counter|room temp|shelf/.test(storage)) {
+    if (isProduce) {
+      return "counter-list";
+    }
+
+    const isGrain =
+      /\b(rice|pasta|bread|oats|oatmeal|cereal|flour|quinoa)\b/.test(name);
+
+    return isGrain ? "grains-list" : "staples-list";
+  }
+
+  return null;
+}
+
+function foodCard(item) {
+  const color =
+    item.daysLeft <= 2
+      ? "expiry-red"
+      : item.daysLeft <= 5
+      ? "expiry-amber"
+      : "expiry-green";
+
+  const label =
+    item.daysLeft < 0
+      ? "Past estimated date"
+      : item.daysLeft === 0
+      ? "Estimated today"
+      : `${item.daysLeft} day${item.daysLeft === 1 ? "" : "s"} left`;
+
+  return `
+    <article class="food-card">
+      <details>
+        <summary>
+          <span class="food-name">
+            ${escapeHtml(item.name)}
+          </span>
+
+          <span class="expiry-chip ${color}">
+            ${escapeHtml(label)}
+          </span>
+        </summary>
+
+        <div class="food-details">
+          <p>Store: ${escapeHtml(item.storage)}</p>
+          <p>Estimated date: ${escapeHtml(item.expiryDate)}</p>
+          <p>${escapeHtml(item.tip)}</p>
+
+          ${
+            item.needsReview ? "<p>Please check this general estimate.</p>" : ""
+          }
+        </div>
+      </details>
+    </article>
+  `;
+}
+
 function render(list) {
+  const sections = {
+    "freezer-list": [],
+    "fridge-list": [],
+    "fresh-list": [],
+    "grains-list": [],
+    "staples-list": [],
+    "counter-list": [],
+  };
+
+  const unassigned = [];
+
   const sorted = [...list].sort((a, b) => a.daysLeft - b.daysLeft);
 
-  const soon = list.filter((i) => i.daysLeft >= 0 && i.daysLeft <= 2).length;
+  for (const item of sorted) {
+    const section = getStorageSection(item);
+
+    if (section) {
+      sections[section].push(item);
+    } else {
+      unassigned.push(item);
+    }
+  }
+
+  for (const [id, foods] of Object.entries(sections)) {
+    document.getElementById(id).innerHTML = foods.length
+      ? foods.map(foodCard).join("")
+      : '<p class="compartment-empty">Nothing here yet.</p>';
+  }
+
+  document.getElementById("unassigned-section").hidden =
+    unassigned.length === 0;
+
+  document.getElementById("unassigned-list").innerHTML = unassigned
+    .map(foodCard)
+    .join("");
+
+  const soon = list.filter(
+    (item) => item.daysLeft >= 0 && item.daysLeft <= 2
+  ).length;
 
   document.getElementById(
     "pantry-count"
-  ).textContent = `${list.length} items · ${soon} needing attention soon`;
-
-  document.getElementById("list").innerHTML = sorted
-    .map((i) => {
-      const color =
-        i.daysLeft <= 2
-          ? "expiry-red"
-          : i.daysLeft <= 5
-          ? "expiry-amber"
-          : "expiry-green";
-
-      const label =
-        i.daysLeft < 0
-          ? "Past estimated date"
-          : i.daysLeft === 0
-          ? "Estimated today"
-          : `${i.daysLeft} day${i.daysLeft === 1 ? "" : "s"} left`;
-
-      return `
-                <article class="food-card">
-                  <details>
-                    <summary>
-                      <span class="food-name">
-                        ${escapeHtml(i.name)}
-                      </span>
-                      <span class="expiry-chip ${color}">
-                        ${escapeHtml(label)}
-                      </span>
-                    </summary>
-
-                    <div class="food-details">
-                      <p>Store: ${escapeHtml(i.storage)}</p>
-                      <p>
-                        Estimated date: ${escapeHtml(i.expiryDate)}
-                      </p>
-                      <p>${escapeHtml(i.tip)}</p>
-                      ${
-                        i.needsReview
-                          ? "<p>Please check this general estimate.</p>"
-                          : ""
-                      }
-                    </div>
-                  </details>
-                </article>
-              `;
-    })
-    .join("");
+  ).textContent = `${list.length} items total · ${soon} needing attention soon`;
 }
 
 document.getElementById("cook").onclick = async () => {
