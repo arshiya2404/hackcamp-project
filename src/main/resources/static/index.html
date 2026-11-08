@@ -32,8 +32,8 @@
     };
 
     function render(list) {
-      items.sort((a, b) => a.daysLeft - b.daysLeft);
-      document.getElementById("list").innerHTML = items.map(i => `
+      const sorted = [...list].sort((a, b) => a.daysLeft - b.daysLeft);
+      document.getElementById("list").innerHTML = sorted.map(i => `
         <div class="bg-white rounded-xl p-4 shadow">
           <div class="flex justify-between items-center">
             <span class="font-semibold">${i.name}</span>
@@ -71,10 +71,17 @@
 };
 
     async function loadSample() {
-      const res = await fetch("/api/pantry/sample");
-      items = await res.json(); 
-      render(await res.json());
-    }
+  try {
+    const res = await fetch("/api/pantry/sample");
+    if (!res.ok) throw new Error("Server error " + res.status);
+
+    items = await res.json();
+    render(items);
+  } catch (err) {
+    document.getElementById("status").textContent =
+      "Could not load pantry: " + err.message;
+  }
+}
 
     document.getElementById("file").onchange = async (e) => {
       const file = e.target.files[0];
