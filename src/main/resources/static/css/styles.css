@@ -533,3 +533,50 @@ h3 {
   color: var(--muted);
   font-size: 11px;
 }
+
+.header-links {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px;
+}
+
+.header-links a {
+  color: var(--sage);
+  font-size: 13px;
+}
+
+.layout {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.layout > section {
+  min-width: 0;
+}
+
+.expiry-review {
+  background: #e9ece5;
+  color: #56624f;
+}
+
+.pantry-actions {
+  flex-wrap: wrap;
+}
+
+.button[aria-disabled="true"] {
+  opacity: 0.55;
+  cursor: wait;
+}
+
+button:focus-visible,
+a:focus-visible,
+summary:focus-visible {
+  outline: 3px solid #9bb688;
+  outline-offset: 3px;
+}
+
+@media (max-width: 700px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+}

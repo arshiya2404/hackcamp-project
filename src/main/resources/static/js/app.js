@@ -1,60 +1,209 @@
 let items = [];
 let nextId = 1;
-const SAVE_KEY = "pantrypulse.savedPantry";
-
+let busy = false;
 let showingPantry = false;
 
-document.getElementById("switch-storage").onclick = () => {
+const SAVE_KEY = "pantrypulse.savedPantry";
+const SAVE_VERSION = 2;
+
+const $ = id => document.getElementById(id);
+
+function escapeHtml(value) {
+  return String(value ?? "").replace(/[&<>"']/g, character => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#39;"
+  })[character]);
+}
+
+function setStatus(message) {
+  $("status").textContent = message;
+}
+
+function needsCheck(item) {
+  return item.storage === "review" || item.storage === "unknown";
+}
+
+/*
+ * Convert a calendar date to a day number.
+ * Using UTC for the calculation avoids daylight-saving errors.
+ */
+function parseDay(value) {
+  if (
+    typeof value !== "string" ||
+    !/^\d{4}-\d{2}-\d{2}$/.test(value)
+  ) {
+    throw new Error("A pantry item has an invalid date.");
+  }
+
+  const [year, month, day] = value.split("-").map(Number);
+
+  const date = new Date(0);
+  date.setUTCHours(0, 0, 0, 0);
+  date.setUTCFullYear(year, month - 1, day);
+
+  if (
+    date.getUTCFullYear() !== year ||
+    date.getUTCMonth() !== month - 1 ||
+    date.getUTCDate() !== day
+  ) {
+    throw new Error("A pantry item has an invalid date.");
+  }
+
+  return date.getTime() / 86400000;
+}
+
+function daysUntil(value) {
+  const today = new Date();
+
+  const localToday = new Date(0);
+  localToday.setUTCHours(0, 0, 0, 0);
+  localToday.setUTCFullYear(
+    today.getFullYear(),
+    today.getMonth(),
+    today.getDate()
+  );
+
+  return parseDay(value) - localToday.getTime() / 86400000;
+}
+
+function validateItems(list) {
+  if (!Array.isArray(list) || list.length > 300) {
+    throw new Error("Invalid pantry data. Maximum 300 items.");
+  }
+
+  return list.map(item => {
+    if (
+      !item ||
+      typeof item.name !== "string" ||
+      !item.name.trim() ||
+      typeof item.storage !== "string" ||
+      typeof item.tip !== "string" ||
+      typeof item.needsReview !== "boolean"
+    ) {
+      throw new Error("A pantry item is incomplete.");
+    }
+
+    parseDay(item.purchaseDate);
+    parseDay(item.expiryDate);
+
+    return {
+      ...item,
+      daysLeft: daysUntil(item.expiryDate)
+    };
+  });
+}
+
+function refreshDates(list = items) {
+  for (const item of list) {
+    item.daysLeft = daysUntil(item.expiryDate);
+  }
+}
+
+function clearRecipes() {
+  $("recipes").replaceChildren();
+  $("cook-status").textContent = "";
+}
+
+function replaceItems(list) {
+  // Validate everything before changing the current inventory.
+  const valid = validateItems(list);
+
+  items = valid.map(item => ({
+    ...item,
+    id: nextId++
+  }));
+
+  clearRecipes();
+  render(items);
+}
+
+function addItems(list) {
+  const valid = validateItems(list);
+
+  if (items.length + valid.length > 300) {
+    throw new Error("This pantry supports up to 300 items.");
+  }
+
+  items.push(...valid.map(item => ({
+    ...item,
+    id: nextId++
+  })));
+
+  clearRecipes();
+  render(items);
+}
+
+function setBusy(value) {
+  busy = value;
+
+  ["file", "save-pantry", "load-pantry", "cook"].forEach(id => {
+    $(id).disabled = value;
+  });
+
+  document.querySelectorAll(".remove-btn").forEach(button => {
+    button.disabled = value;
+  });
+
+  document.querySelector(".scan-button").setAttribute(
+    "aria-disabled",
+    String(value)
+  );
+}
+
+async function requestJson(url, options = {}, timeout = 75000) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeout);
+
+  try {
+    const response = await fetch(url, {
+      ...options,
+      signal: controller.signal
+    });
+
+    const data = await response.json().catch(() => null);
+
+    if (!response.ok) {
+      throw new Error(
+        data?.message || `Server error ${response.status}`
+      );
+    }
+
+    if (data === null) {
+      throw new Error("The server returned an empty response.");
+    }
+
+    return data;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+function errorText(error) {
+  return error.name === "AbortError"
+    ? "The request took too long. Please try again."
+    : error.message;
+}
+
+$("switch-storage").onclick = () => {
   showingPantry = !showingPantry;
 
-  document.getElementById("fridge-view").hidden = showingPantry;
+  $("fridge-view").hidden = showingPantry;
+  $("pantry-view").hidden = !showingPantry;
 
-  document.getElementById("pantry-view").hidden = !showingPantry;
+  $("storage-title").textContent =
+    showingPantry ? "My pantry" : "My fridge";
 
-  document.getElementById("storage-title").textContent = showingPantry
-    ? "My pantry"
-    : "My fridge";
+  $("switch-storage").textContent =
+    showingPantry ? "← Fridge" : "Pantry →";
 
-  const button = document.getElementById("switch-storage");
-
-  button.textContent = showingPantry ? "← Fridge" : "Pantry →";
-
-  button.setAttribute(
+  $("switch-storage").setAttribute(
     "aria-label",
     showingPantry ? "Show fridge" : "Show pantry"
   );
 };
-
-function escapeHtml(value) {
-  return String(value ?? "").replace(
-    /[&<>"']/g,
-    (character) =>
-      ({
-        "&": "&amp;",
-        "<": "&lt;",
-        ">": "&gt;",
-        '"': "&quot;",
-        "'": "&#39;",
-      }[character])
-  );
-}
-
-function setStatus(message) {
-  document.getElementById("status").textContent = message;
-}
-
-function daysUntil(dateString) {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const target = new Date(dateString + "T00:00:00");
-  return Math.round((target - today) / 86400000);
-}
-
-function addItems(newItems) {
-  for (const item of newItems) {
-    items.push({ ...item, id: nextId++ });
-  }
-}
 
 function getStorageSection(item) {
   const storage = String(item.storage ?? "").toLowerCase();
@@ -73,16 +222,11 @@ function getStorageSection(item) {
       name
     );
 
-  if (/freez|frozen/.test(storage)) {
-    return "freezer-list";
-  }
-
   if (/fridge|refrigerat|crisper|fresh drawer/.test(storage)) {
     return isProduce ? "fresh-list" : "fridge-list";
   }
 
   if (/pantry|cupboard|counter|room temp|shelf/.test(storage)) {
-    // Packaged products should not be grouped as fresh produce.
     const isPackaged =
       /\b(canned|tinned|jarred|sauce|jam|preserves|pickles)\b/.test(name);
 
@@ -106,49 +250,55 @@ function getStorageSection(item) {
 }
 
 function foodCard(item) {
-  const color =
-    item.daysLeft <= 2
+  const provisional = needsCheck(item);
+
+  const color = provisional
+    ? "expiry-review"
+    : item.daysLeft <= 2
       ? "expiry-red"
       : item.daysLeft <= 5
-      ? "expiry-amber"
-      : "expiry-green";
+        ? "expiry-amber"
+        : "expiry-green";
 
-  const label =
-    item.daysLeft < 0
+  const label = provisional
+    ? "Check label"
+    : item.daysLeft < 0
       ? "Past estimated date"
       : item.daysLeft === 0
-      ? "Estimated today"
-      : `${item.daysLeft} day${item.daysLeft === 1 ? "" : "s"} left`;
+        ? "Estimated today"
+        : `${item.daysLeft} day${item.daysLeft === 1 ? "" : "s"} left`;
 
-  const needsStorageCheck =
-    item.storage === "review" || item.storage === "unknown";
-
-  const storageLabel = needsStorageCheck ? "Fridge · suggested" : item.storage;
-
-  const dateLabel = needsStorageCheck ? "Check label" : label;
+  const storageLabel = provisional
+    ? "Fridge · suggested"
+    : item.storage;
 
   return `
     <article class="food-card">
-    <button type="button" class="remove-btn" data-id="${item.id}"
-        aria-label="Remove ${escapeHtml(item.name)}" title="Remove">×</button>
+      <button
+        type="button"
+        class="remove-btn"
+        data-id="${item.id}"
+        aria-label="Remove ${escapeHtml(item.name)}"
+        title="Remove"
+      >×</button>
+
       <details>
         <summary>
-          <span class="food-name">
-            ${escapeHtml(item.name)}
-          </span>
-
+          <span class="food-name">${escapeHtml(item.name)}</span>
           <span class="expiry-chip ${color}">
-            ${escapeHtml(dateLabel)}
+            ${escapeHtml(label)}
           </span>
         </summary>
 
         <div class="food-details">
           <p>Store: ${escapeHtml(storageLabel)}</p>
+
           ${
-            needsStorageCheck
-              ? "<p>Set the date from your package label.</p>"
+            provisional
+              ? "<p>Check the printed date before relying on this estimate.</p>"
               : `<p>Estimated date: ${escapeHtml(item.expiryDate)}</p>`
           }
+
           <p>${escapeHtml(item.tip)}</p>
 
           ${
@@ -163,18 +313,25 @@ function foodCard(item) {
 }
 
 function render(list) {
+  refreshDates(list);
+
   const sections = {
     "freezer-list": [],
     "fridge-list": [],
     "fresh-list": [],
     "grains-list": [],
     "staples-list": [],
-    "counter-list": [],
+    "counter-list": []
   };
 
   const unassigned = [];
 
-  const sorted = [...list].sort((a, b) => a.daysLeft - b.daysLeft);
+  // Put items with verified catalogue estimates before unknown dates.
+  const rank = item => needsCheck(item) ? Infinity : item.daysLeft;
+
+  const sorted = [...list].sort(
+    (a, b) => rank(a) - rank(b)
+  );
 
   for (const item of sorted) {
     const section = getStorageSection(item);
@@ -187,191 +344,283 @@ function render(list) {
   }
 
   for (const [id, foods] of Object.entries(sections)) {
-    document.getElementById(id).innerHTML = foods.length
+    $(id).innerHTML = foods.length
       ? foods.map(foodCard).join("")
       : '<p class="compartment-empty">Nothing here yet.</p>';
   }
 
-  document.getElementById("unassigned-section").hidden =
-    unassigned.length === 0;
+  $("unassigned-section").hidden = unassigned.length === 0;
+  $("unassigned-list").innerHTML = unassigned.map(foodCard).join("");
 
-  document.getElementById("unassigned-list").innerHTML = unassigned
-    .map(foodCard)
-    .join("");
-
-  const soon = list.filter(
-    (item) => item.daysLeft >= 0 && item.daysLeft <= 2
+  const soon = list.filter(item =>
+    !needsCheck(item) &&
+    item.daysLeft >= 0 &&
+    item.daysLeft <= 2
   ).length;
 
-  document.getElementById("pantry-count").textContent = list.length
+  $("pantry-count").textContent = list.length
     ? `${list.length} items total · ${soon} needing attention soon`
     : "Scan a receipt to fill your fridge.";
 }
 
-document.addEventListener("click", (e) => {
-  const button = e.target.closest(".remove-btn");
-  if (!button) return;
+document.addEventListener("click", event => {
+  const button = event.target.closest(".remove-btn");
 
-  const id = Number(button.dataset.id);
-  items = items.filter((item) => item.id !== id);
+  if (!button || busy) return;
+
+  items = items.filter(
+    item => item.id !== Number(button.dataset.id)
+  );
+
+  clearRecipes();
   render(items);
 });
 
-document.getElementById("save-pantry").onclick = () => {
-  if (items.length === 0) {
-    setStatus("Nothing to save yet. Scan a receipt first.");
-    return;
-  }
+$("save-pantry").onclick = () => {
+  if (busy) return;
 
   try {
+    refreshDates();
+
     const saved = items.map(({ id, ...rest }) => rest);
+
+    // Empty saves are allowed, so removed foods don't return later.
     localStorage.setItem(
       SAVE_KEY,
-      JSON.stringify({ savedAt: new Date().toISOString(), items: saved })
+      JSON.stringify({
+        version: SAVE_VERSION,
+        savedAt: new Date().toISOString(),
+        items: saved
+      })
     );
+
     setStatus(`Saved ${items.length} items.`);
-  } catch (err) {
-    setStatus("Could not save: " + err.message);
+  } catch (error) {
+    setStatus("Could not save: " + errorText(error));
   }
 };
 
-document.getElementById("load-pantry").onclick = () => {
+$("load-pantry").onclick = async () => {
+  if (busy) return;
+
   try {
     const raw = localStorage.getItem(SAVE_KEY);
+
     if (!raw) {
       setStatus("No saved pantry found yet.");
       return;
     }
 
     const data = JSON.parse(raw);
-    if (!Array.isArray(data.items)) {
-      throw new Error("saved data is not valid");
+
+    if (
+      data.version !== undefined &&
+      data.version !== SAVE_VERSION
+    ) {
+      throw new Error("This save version is not supported.");
     }
+
+    let loaded = validateItems(data.items);
 
     if (
       items.length > 0 &&
-      !confirm("Replace your current pantry with the saved one?")
+      !confirm("Replace the current pantry with your saved pantry?")
     ) {
       return;
     }
 
-    items = [];
-    nextId = 1;
-    // days left must be recalculated, because time has passed since saving
-    addItems(
-      data.items.map((item) => ({
-        ...item,
-        daysLeft: daysUntil(item.expiryDate),
-      }))
-    );
-    render(items);
+    if (data.version === undefined && loaded.length > 0) {
+      const approved = confirm(
+        "This is an older save. Recheck food matches and recalculate " +
+        "estimates from the original purchase dates? " +
+        "The original save remains until you click Save pantry."
+      );
+
+      if (!approved) return;
+
+      setBusy(true);
+      setStatus("Rechecking older food matches...");
+
+      loaded = await requestJson("/api/pantry/recheck", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(
+          loaded.map(item => ({
+            name: item.name,
+            purchaseDate: item.purchaseDate
+          }))
+        )
+      }, 15000);
+    }
+
+    replaceItems(loaded);
+
     setStatus(
-      `Loaded ${items.length} items (saved ${new Date(
-        data.savedAt
-      ).toLocaleString()}).`
+      `Loaded ${items.length} items. ` +
+      "Click Save pantry to keep this version."
     );
-  } catch (err) {
-    setStatus("Could not load: " + err.message);
+  } catch (error) {
+    setStatus("Could not load: " + errorText(error));
+  } finally {
+    setBusy(false);
   }
 };
 
-document.getElementById("cook").onclick = async () => {
-  // NEW: friendly message instead of a server error when the pantry is empty
+function renderRecipes(recipes) {
+  const valid = Array.isArray(recipes) && recipes.every(recipe =>
+    recipe &&
+    typeof recipe.title === "string" &&
+    typeof recipe.time === "string" &&
+    ["usedExpiringItems", "ingredients", "steps"].every(key =>
+      Array.isArray(recipe[key]) &&
+      recipe[key].every(value => typeof value === "string")
+    )
+  );
+
+  if (!valid) {
+    throw new Error("The recipe response was incomplete.");
+  }
+
+  $("recipes").innerHTML = recipes.map(recipe => `
+    <details class="recipe-card">
+      <summary>
+        <div class="recipe-art" aria-hidden="true">
+          <div class="plate">
+            <span></span>
+            <span></span>
+          </div>
+        </div>
+
+        <div>
+          <h3>${escapeHtml(recipe.title)}</h3>
+          <p class="recipe-time">${escapeHtml(recipe.time)}</p>
+          <p class="recipe-uses">
+            Uses: ${recipe.usedExpiringItems.map(escapeHtml).join(", ")}
+          </p>
+          <span class="recipe-link">View recipe</span>
+        </div>
+      </summary>
+
+      <div class="recipe-details">
+        <h4>Ingredients</h4>
+        <ul>
+          ${recipe.ingredients.map(value =>
+            `<li>${escapeHtml(value)}</li>`
+          ).join("")}
+        </ul>
+
+        <h4>Let’s make it</h4>
+        <ol>
+          ${recipe.steps.map(value =>
+            `<li>${escapeHtml(value)}</li>`
+          ).join("")}
+        </ol>
+      </div>
+    </details>
+  `).join("");
+}
+
+$("cook").onclick = async () => {
+  if (busy) return;
+
   if (items.length === 0) {
-    document.getElementById("cook-status").textContent =
-      "Scan a receipt first.";
+    $("cook-status").textContent = "Scan a receipt first.";
     return;
   }
 
-  document.getElementById("cook-status").textContent = "Cooking up ideas...";
+  render(items);
+  clearRecipes();
+  setBusy(true);
+
+  $("cook").textContent = "Finding recipes...";
+  $("cook-status").textContent = "Cooking up ideas...";
+
   try {
-    const res = await fetch("/api/recipes", {
+    const recipes = await requestJson("/api/recipes", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json"
+      },
       body: JSON.stringify(
-        items.map((i) => ({ name: i.name, daysLeft: i.daysLeft }))
-      ),
-    });
-    if (!res.ok) throw new Error("Server error " + res.status);
-    const recipes = await res.json();
-    document.getElementById("recipes").innerHTML = recipes
-      .map(
-        (r) => `
-            <details class="recipe-card">
-              <summary>
-                <div class="recipe-art" aria-hidden="true">
-                  <div class="plate">
-                    <span></span>
-                    <span></span>
-                  </div>
-                </div>
-
-                <div>
-                  <h3>${escapeHtml(r.title)}</h3>
-                  <p class="recipe-time">${escapeHtml(r.time)}</p>
-                  <p class="recipe-uses">
-                    Uses:
-                    ${r.usedExpiringItems.map(escapeHtml).join(", ")}
-                  </p>
-                  <span class="recipe-link">View recipe</span>
-                </div>
-              </summary>
-
-              <div class="recipe-details">
-                <h4>Ingredients</h4>
-                <ul>
-                  ${r.ingredients
-                    .map(
-                      (ingredient) => `
-                    <li>${escapeHtml(ingredient)}</li>
-                  `
-                    )
-                    .join("")}
-                </ul>
-
-                <h4>Let’s make it</h4>
-                <ol>
-                  ${r.steps
-                    .map(
-                      (step) => `
-                    <li>${escapeHtml(step)}</li>
-                  `
-                    )
-                    .join("")}
-                </ol>
-              </div>
-            </details>
-          `
+        items.map(item => ({
+          name: item.name,
+          daysLeft: needsCheck(item) ? null : item.daysLeft
+        }))
       )
-      .join("");
+    });
 
-    document.getElementById("cook-status").textContent = "";
-  } catch (err) {
-    document.getElementById("cook-status").textContent =
-      "Could not get recipes: " + err.message;
+    renderRecipes(recipes);
+
+    $("cook-status").textContent = recipes.length
+      ? ""
+      : "No recipes found. Try adding more ingredients.";
+  } catch (error) {
+    $("cook-status").textContent =
+      "Could not get recipes: " + errorText(error);
+  } finally {
+    setBusy(false);
+    $("cook").textContent = "What should I cook? ↗";
   }
 };
 
-document.getElementById("file").onchange = async (e) => {
-  const file = e.target.files[0];
-  if (!file) return;
-  document.getElementById("status").textContent = "Reading receipt...";
+$("file").onchange = async event => {
+  const file = event.target.files[0];
+
+  if (!file || busy) return;
+
+  if (file.size > 5 * 1024 * 1024) {
+    setStatus("Use an image smaller than 5 MB.");
+    event.target.value = "";
+    return;
+  }
+
   const form = new FormData();
   form.append("image", file);
+
+  setBusy(true);
+  setStatus("Reading receipt...");
+
   try {
-    const res = await fetch("/api/receipt", {
+    const added = await requestJson("/api/receipt", {
       method: "POST",
-      body: form,
+      body: form
     });
-    if (!res.ok) throw new Error("Server error " + res.status);
-    addItems(await res.json());
-    render(items);
-    document.getElementById("status").textContent = "";
-  } catch (err) {
-    document.getElementById("status").textContent =
-      "Could not read the receipt: " + err.message;
+
+    addItems(added);
+
+    setStatus(added.length
+      ? `Added ${added.length} items. Check suggested storage and dates.`
+      : "No food items were found. Try a clearer image."
+    );
+  } catch (error) {
+    setStatus("Could not read receipt: " + errorText(error));
+  } finally {
+    event.target.value = "";
+    setBusy(false);
   }
-  e.target.value = "";
 };
+
+function refreshOpenPage() {
+  if (busy) return;
+
+  const changed = items.some(
+    item => item.daysLeft !== daysUntil(item.expiryDate)
+  );
+
+  if (changed) {
+    clearRecipes();
+    render(items);
+  }
+}
+
+window.addEventListener("focus", refreshOpenPage);
+
+document.addEventListener("visibilitychange", () => {
+  if (!document.hidden) refreshOpenPage();
+});
+
+setInterval(refreshOpenPage, 60000);
 
 render(items);
