@@ -31,21 +31,37 @@
       GREEN: "bg-green-100 text-green-800"
     };
 
-    function render(list) {
-      const sorted = [...list].sort((a, b) => a.daysLeft - b.daysLeft);
-      document.getElementById("list").innerHTML = sorted.map(i => `
-        <div class="bg-white rounded-xl p-4 shadow">
-          <div class="flex justify-between items-center">
-            <span class="font-semibold">${i.name}</span>
-            <span class="text-sm px-2 py-1 rounded-full ${colors[i.color]}">
-              ${i.daysLeft < 0 ? "Expired" : i.daysLeft + " days left"}
-            </span>
-          </div>
-          <p class="text-sm text-gray-500">Store: ${i.storage} · Use by ${i.expiryDate}</p>
-          <p class="text-sm mt-1">${i.tip}</p>
-          ${i.needsReview ? '<p class="text-xs text-amber-700 mt-1">Estimate. Please check.</p>' : ""}
-        </div>`).join("");
+    function escapeHtml(value) {
+        return String(value ?? "").replace(/[&<>"']/g, character => ({
+            "&": "&amp;",
+            "<": "&lt;",
+            ">": "&gt;",
+            '"': "&quot;",
+            "'": "&#39;"
+        })[character]);
     }
+
+    function render(list) {
+        const sorted = [...list].sort((a, b) => a.daysLeft - b.daysLeft);
+        document.getElementById("list").innerHTML = sorted.map(i => `
+        <div class="bg-white rounded-xl p-4 shadow">
+            <div class="flex justify-between items-center">
+                <span class="font-semibold">${escapeHtml(i.name)}</span>
+                <span class="text-sm px-2 py-1 rounded-full ${colors[i.color] ?? colors.AMBER}">
+                    ${i.daysLeft < 0 ? "Expired" : i.daysLeft + " days left"}
+                    </span>
+                    </div>
+                    <p class="text-sm text-gray-500">
+                        Store: ${escapeHtml(i.storage)} · Use by ${escapeHtml(i.expiryDate)}
+                    </p>
+                    <p class="text-sm mt-1">${escapeHtml(i.tip)}</p>
+                    ${i.needsReview
+                        ? '<p class="text-xs text-amber-700 mt-1">Estimate. Please check.</p>'
+                        : ""}
+                </div>
+            `).join("");
+        }
+
 
     document.getElementById("cook").onclick = async () => {
   document.getElementById("cook-status").textContent = "Cooking up ideas...";
@@ -58,12 +74,24 @@
     if (!res.ok) throw new Error("Server error " + res.status);
     const recipes = await res.json();
     document.getElementById("recipes").innerHTML = recipes.map(r => `
-      <div class="bg-white rounded-xl p-4 shadow">
-        <p class="font-semibold">${r.title} <span class="text-sm text-gray-500">· ${r.time}</span></p>
-        <p class="text-sm text-green-700">Uses: ${r.usedExpiringItems.join(", ")}</p>
-        <p class="text-sm mt-1">${r.ingredients.join(", ")}</p>
-        <ol class="list-decimal ml-5 text-sm mt-1">${r.steps.map(s => `<li>${s}</li>`).join("")}</ol>
-      </div>`).join("");
+  <div class="bg-white rounded-xl p-4 shadow">
+    <p class="font-semibold">
+      ${escapeHtml(r.title)}
+      <span class="text-sm text-gray-500">
+        · ${escapeHtml(r.time)}
+      </span>
+    </p>
+    <p class="text-sm text-green-700">
+      Uses: ${r.usedExpiringItems.map(escapeHtml).join(", ")}
+    </p>
+    <p class="text-sm mt-1">
+      ${r.ingredients.map(escapeHtml).join(", ")}
+    </p>
+    <ol class="list-decimal ml-5 text-sm mt-1">
+      ${r.steps.map(s => `<li>${escapeHtml(s)}</li>`).join("")}
+    </ol>
+  </div>
+`).join("");
     document.getElementById("cook-status").textContent = "";
   } catch (err) {
     document.getElementById("cook-status").textContent = "Could not get recipes: " + err.message;
