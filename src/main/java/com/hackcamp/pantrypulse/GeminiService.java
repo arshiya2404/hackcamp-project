@@ -37,7 +37,20 @@ public class GeminiService {
                 .build();
     }
 
-    public String generate(List<Map<String, Object>> parts) throws Exception {
+    public String generate(
+            List<Map<String, Object>> parts) throws Exception {
+
+        return generate(parts, 2048);
+    }
+
+    public String generate(
+            List<Map<String, Object>> parts,
+            int maxOutputTokens) throws Exception {
+
+        if (maxOutputTokens < 1 || maxOutputTokens > 8192) {
+            throw new IllegalArgumentException(
+                    "Invalid output token limit");
+        }
         String key = System.getenv("GEMINI_API_KEY");
 
         if (key == null || key.isBlank()) {
@@ -56,7 +69,7 @@ public class GeminiService {
                                 "role", "user",
                                 "parts", parts)),
                 "generationConfig", Map.of(
-                        "maxOutputTokens", 2048,
+                        "maxOutputTokens", maxOutputTokens,
                         "responseMimeType", "application/json"));
 
         System.out.println("Calling Gemini model: " + model);
@@ -82,7 +95,14 @@ public class GeminiService {
         }
 
         JsonNode root = mapper.readTree(response);
-        JsonNode candidate = root.path("candidates").path(0);
+        JsonNode candidates = root.path("candidates");
+
+        if (!candidates.isArray() || candidates.isEmpty()) {
+            throw new IllegalStateException(
+                    "The model returned no candidate response.");
+        }
+
+        JsonNode candidate = candidates.path(0);
 
         String finishReason = candidate.path("finishReason").asText();
 

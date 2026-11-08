@@ -75,12 +75,15 @@ public class LabExtractionService {
 
         String encoded = Base64.getEncoder().encodeToString(bytes);
 
-        String text = gemini.generate(List.of(
-                Map.<String, Object>of("text", PROMPT),
-                Map.<String, Object>of(
-                        "inline_data", Map.of(
-                                "mime_type", mimeType,
-                                "data", encoded))));
+        String text = gemini.generate(
+                List.of(
+                        Map.<String, Object>of("text", PROMPT),
+                        Map.<String, Object>of(
+                                "inline_data",
+                                Map.of(
+                                        "mime_type", mimeType,
+                                        "data", encoded))),
+                8192);
 
         LabExtraction extraction = mapper.readValue(text, LabExtraction.class);
 
