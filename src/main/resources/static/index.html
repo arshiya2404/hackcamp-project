@@ -141,6 +141,80 @@
           font-size: 9px;
         }
       }
+
+      .layout {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 36px;
+        align-items: start;
+      }
+
+      .section-title {
+        font-size: 29px;
+        margin-bottom: 4px;
+      }
+
+      .section-description,
+      .hint {
+        color: var(--muted);
+        font-size: 12px;
+        margin-bottom: 16px;
+      }
+
+      .fridge {
+        background: var(--light-green);
+        border: 9px solid #e4eae0;
+        border-radius: 30px;
+        padding: 16px;
+        min-height: 300px;
+      }
+
+      .food-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+        align-items: start;
+      }
+
+      .hint {
+        margin-top: 10px;
+      }
+
+      .cook-panel {
+        background: #e6f0df;
+        padding: 22px;
+        border-radius: 15px;
+        margin-top: 24px;
+      }
+
+      .cook-panel h3 {
+        font-size: 23px;
+        margin-bottom: 6px;
+      }
+
+      .cook-panel p {
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .cook-panel .button {
+        width: 100%;
+      }
+
+      .safety-note {
+        border-top: 1px solid var(--border);
+        margin-top: 35px;
+        padding-top: 18px;
+        color: var(--muted);
+        font-size: 11px;
+      }
+
+      @media (max-width: 700px) {
+        .layout {
+          grid-template-columns: 1fr;
+          gap: 30px;
+        }
+      }
     </style>
   </head>
   <body>
@@ -173,13 +247,37 @@
       </section>
 
       <p id="status" class="status" role="status"></p>
-      <div id="list" class="space-y-3"></div>
+      <div class="layout">
+        <section>
+          <h2 class="section-title">My fridge</h2>
+          <p id="pantry-count" class="section-description"></p>
 
-      <button id="cook" class="px-4 py-2 bg-green-700 text-white rounded my-4">
-        What should I cook?
-      </button>
-      <p id="cook-status" class="text-sm text-gray-500 mb-2"></p>
-      <div id="recipes" class="space-y-3"></div>
+          <div class="fridge">
+            <div id="list" class="food-grid"></div>
+          </div>
+
+          <p class="hint">Tap a food for storage tips.</p>
+
+          <div class="cook-panel">
+            <h3>A little inspiration?</h3>
+            <p>Start with what needs using soon.</p>
+            <button id="cook" class="button">What should I cook? ↗</button>
+          </div>
+        </section>
+
+        <section>
+          <h2 class="section-title">On the menu</h2>
+          <p class="section-description">Simple ideas, from your pantry.</p>
+
+          <p id="cook-status" class="status" role="status"></p>
+          <div id="recipes" class="space-y-3"></div>
+        </section>
+      </div>
+
+      <footer class="safety-note">
+        Shelf-life dates are estimates, not guarantees of safety. Check storage
+        conditions and printed labels. If in doubt, throw it out.
+      </footer>
 
       <script>
         let items = [];
