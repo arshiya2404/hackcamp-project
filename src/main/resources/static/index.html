@@ -5,8 +5,77 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>PantryPulse</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+  :root {
+    --mint: #f1faf4;
+    --sage: #608e6c;
+    --light-green: #d5e5c5;
+    --ink: #273c30;
+    --muted: #66796a;
+    --border: #dce8dc;
+  }
+
+  body {
+    margin: 0;
+    background: var(--mint);
+    color: var(--ink);
+    font-family: Arial, sans-serif;
+    line-height: 1.6;
+  }
+
+  .page {
+    max-width: 1060px;
+    margin: auto;
+    padding: 28px 24px 60px;
+  }
+
+  h1, h2, h3 {
+    font-family: Georgia, serif;
+    font-weight: normal;
+  }
+
+  .button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px 20px;
+    background: var(--sage);
+    color: white;
+    border: none;
+    border-radius: 9px;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+  }
+
+  .button:hover {
+    filter: brightness(0.95);
+  }
+
+  .button:disabled {
+    opacity: 0.55;
+    cursor: wait;
+  }
+
+  .button-secondary {
+    background: var(--light-green);
+    color: var(--ink);
+  }
+
+  .status {
+    color: var(--muted);
+    font-size: 13px;
+    margin: 12px 0;
+  }
+
+  .status:empty {
+    display: none;
+  }
+</style>
 </head>
-<body class="bg-gray-50 p-4 max-w-xl mx-auto">
+  </main>
+<body>
+  <main class="page">
   <h1 class="text-2xl font-bold">PantryPulse</h1>
   <p class="text-sm text-gray-500 mb-4">Expiry dates are estimates. If in doubt, throw it out.</p>
 
