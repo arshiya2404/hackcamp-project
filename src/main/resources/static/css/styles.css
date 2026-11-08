@@ -484,3 +484,47 @@ h3 {
 .unassigned-section {
   margin-top: 24px;
 }
+
+.food-card {
+  position: relative;
+}
+
+.food-card summary {
+  padding-right: 24px;
+}
+
+.remove-btn {
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  width: 22px;
+  height: 22px;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--muted);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.remove-btn:hover {
+  background: #ffdbd6;
+  color: #9c4038;
+}
+
+.remove-btn:focus-visible {
+  outline: 3px solid var(--sage);
+  outline-offset: 2px;
+}
+
+.pantry-actions {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.pantry-actions .button {
+  padding: 8px 14px;
+  font-size: 12px;
+}

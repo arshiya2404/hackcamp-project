@@ -1,4 +1,6 @@
 let items = [];
+let nextId = 1; 
+const SAVE_KEY = "pantrypulse.savedPantry";
 
 let showingPantry = false;
 
@@ -35,6 +37,23 @@ function escapeHtml(value) {
         "'": "&#39;",
       }[character])
   );
+}
+
+function setStatus(message) {
+  document.getElementById("status").textContent = message;
+}
+
+function daysUntil(dateString) {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const target = new Date(dateString + "T00:00:00");
+  return Math.round((target - today) / 86400000);
+}
+
+function addItems(newItems) {
+  for (const item of newItems) {
+    items.push({ ...item, id: nextId++ });
+  }
 }
 
 function getStorageSection(item) {
@@ -86,6 +105,8 @@ function foodCard(item) {
 
   return `
     <article class="food-card">
+    <button type="button" class="remove-btn" data-id="${item.id}"
+        aria-label="Remove ${escapeHtml(item.name)}" title="Remove">×</button>
       <details>
         <summary>
           <span class="food-name">
@@ -152,12 +173,86 @@ function render(list) {
     (item) => item.daysLeft >= 0 && item.daysLeft <= 2
   ).length;
 
-  document.getElementById(
-    "pantry-count"
-  ).textContent = `${list.length} items total · ${soon} needing attention soon`;
+  document.getElementById("pantry-count").textContent = list.length
+    ? `${list.length} items total · ${soon} needing attention soon`
+    : "Scan a receipt to fill your fridge.";
 }
 
+document.addEventListener("click", (e) => {
+  const button = e.target.closest(".remove-btn");
+  if (!button) return;
+
+  const id = Number(button.dataset.id);
+  items = items.filter((item) => item.id !== id);
+  render(items);
+});
+
+document.getElementById("save-pantry").onclick = () => {
+  if (items.length === 0) {
+    setStatus("Nothing to save yet. Scan a receipt first.");
+    return;
+  }
+
+  try {
+    const saved = items.map(({ id, ...rest }) => rest);
+    localStorage.setItem(
+      SAVE_KEY,
+      JSON.stringify({ savedAt: new Date().toISOString(), items: saved })
+    );
+    setStatus(`Saved ${items.length} items.`);
+  } catch (err) {
+    setStatus("Could not save: " + err.message);
+  }
+};
+
+document.getElementById("load-pantry").onclick = () => {
+  try {
+    const raw = localStorage.getItem(SAVE_KEY);
+    if (!raw) {
+      setStatus("No saved pantry found yet.");
+      return;
+    }
+
+    const data = JSON.parse(raw);
+    if (!Array.isArray(data.items)) {
+      throw new Error("saved data is not valid");
+    }
+
+    if (
+      items.length > 0 &&
+      !confirm("Replace your current pantry with the saved one?")
+    ) {
+      return;
+    }
+
+    items = [];
+    nextId = 1;
+    // days left must be recalculated, because time has passed since saving
+    addItems(
+      data.items.map((item) => ({
+        ...item,
+        daysLeft: daysUntil(item.expiryDate),
+      }))
+    );
+    render(items);
+    setStatus(
+      `Loaded ${items.length} items (saved ${new Date(
+        data.savedAt
+      ).toLocaleString()}).`
+    );
+  } catch (err) {
+    setStatus("Could not load: " + err.message);
+  }
+};
+
 document.getElementById("cook").onclick = async () => {
+  // NEW: friendly message instead of a server error when the pantry is empty
+  if (items.length === 0) {
+    document.getElementById("cook-status").textContent =
+      "Scan a receipt first.";
+    return;
+  }
+
   document.getElementById("cook-status").textContent = "Cooking up ideas...";
   try {
     const res = await fetch("/api/recipes", {
@@ -227,19 +322,6 @@ document.getElementById("cook").onclick = async () => {
   }
 };
 
-async function loadSample() {
-  try {
-    const res = await fetch("/api/pantry/sample");
-    if (!res.ok) throw new Error("Server error " + res.status);
-
-    items = await res.json();
-    render(items);
-  } catch (err) {
-    document.getElementById("status").textContent =
-      "Could not load pantry: " + err.message;
-  }
-}
-
 document.getElementById("file").onchange = async (e) => {
   const file = e.target.files[0];
   if (!file) return;
@@ -252,13 +334,14 @@ document.getElementById("file").onchange = async (e) => {
       body: form,
     });
     if (!res.ok) throw new Error("Server error " + res.status);
-    items = items.concat(await res.json());
+    addItems(await res.json());
     render(items);
     document.getElementById("status").textContent = "";
   } catch (err) {
     document.getElementById("status").textContent =
       "Could not read the receipt: " + err.message;
   }
+  e.target.value = "";
 };
 
-loadSample();
+render(items);
