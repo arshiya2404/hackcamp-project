@@ -194,8 +194,15 @@ public class LabRuleService {
     }
 
     private void validate(LabConfirmation request) {
-        if (request == null || !request.confirmed()) {
+        if (request == null ||
+                !Boolean.TRUE.equals(request.confirmed())) {
             throw badRequest("Confirm that you checked the report values.");
+        }
+
+        if (request.conditionOrMedication() == null ||
+                request.enableFoodFocus() == null) {
+            throw badRequest(
+                    "Answer the medical-context and food-focus questions explicitly.");
         }
 
         if (request.markers() == null
