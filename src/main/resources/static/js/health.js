@@ -64,6 +64,14 @@
     get("health-content").hidden = false;
     get("clear-health").hidden = false;
 
+    const findingsSection = document.querySelector(
+      "#health-panel details.health-findings"
+    );
+
+    if (findingsSection) {
+      findingsSection.open = true;
+    }
+
     get("health-origin").textContent = sample
       ? "Fictional sample · not real health information"
       : "Automatically extracted from your report · check accuracy";
@@ -78,8 +86,10 @@
 
       message.className = "health-small";
       message.textContent =
-        "No supported food preferences were identified. " +
-        "Your recipes will continue using the pantry alone.";
+        profile.cards.length > 0
+          ? "Your report findings are shown below. " +
+            "No automatic recipe preferences were added."
+          : "No selected report findings were extracted.";
 
       options.append(message);
     }
@@ -209,8 +219,11 @@
 
       get("health-status").textContent =
         data.focusAreas.length > 0
-          ? "Ready. Your next recipe will use the selected food preferences."
-          : "Report scanned. No supported food preferences were created.";
+          ? "Report scanned. Your findings are shown below, " +
+            "and recipe preferences are ready."
+          : data.cards.length > 0
+          ? "Report scanned. Your findings are shown below."
+          : "No selected report findings were extracted.";
     } catch (error) {
       get("health-status").textContent =
         error.name === "AbortError"
@@ -232,10 +245,6 @@
     if (file) {
       scanReport(file);
     }
-  };
-
-  get("health-demo").onclick = () => {
-    scanReport(null, true);
   };
 
   get("health-enabled").onchange = () => {

@@ -162,7 +162,6 @@ function setBusy(value) {
     "load-pantry",
     "cook",
     "clear-health",
-    "health-demo",
   ].forEach((id) => {
     const element = document.getElementById(id);
 
