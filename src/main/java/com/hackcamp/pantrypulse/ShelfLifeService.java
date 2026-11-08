@@ -127,10 +127,9 @@ public class ShelfLifeService {
                     name.trim(),
                     purchaseDate,
                     5,
-                    "review",
-                    "Suggested location: fridge. Check the package for storage "
-                            + "instructions and its printed date. "
-                            + "The five-day reminder is provisional.",
+                    "fridge",
+                    "Not in our shelf-life list, so this assumes fridge storage "
+                            + "and about five days.",
                     true);
         }
 

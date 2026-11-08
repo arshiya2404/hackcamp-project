@@ -252,6 +252,11 @@ summary:focus-visible {
   outline-offset: 3px;
 }
 
+.storage-warning {
+  color: #806018;
+  font-weight: bold;
+}
+
 .pantry-actions {
   display: flex;
   flex-wrap: wrap;
@@ -263,11 +268,6 @@ summary:focus-visible {
 .pantry-actions .button {
   padding: 8px 14px;
   font-size: 12px;
-}
-
-.storage-note {
-  color: var(--muted);
-  font-size: 11px;
 }
 
 /* Fridge */
@@ -424,11 +424,6 @@ summary:focus-visible {
 .expiry-green {
   background: #e1eed3;
   color: #45613c;
-}
-
-.expiry-review {
-  background: #e9ece5;
-  color: #56624f;
 }
 
 .food-details {

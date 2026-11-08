@@ -27,10 +27,6 @@ function setStatus(message) {
   $("status").textContent = message;
 }
 
-function needsCheck(item) {
-  return item.storage === "review";
-}
-
 /*
  * Convert a calendar date to a day number.
  * Using UTC for the calculation avoids daylight-saving errors.
@@ -276,25 +272,22 @@ function getStorageSection(item) {
 }
 
 function foodCard(item) {
-  const provisional = needsCheck(item);
+  const color =
+    item.daysLeft <= 2
+      ? "expiry-red"
+      : item.daysLeft <= 5
+      ? "expiry-amber"
+      : "expiry-green";
 
-  const color = provisional
-    ? "expiry-review"
-    : item.daysLeft <= 2
-    ? "expiry-red"
-    : item.daysLeft <= 5
-    ? "expiry-amber"
-    : "expiry-green";
+  const base =
+    item.daysLeft < 0
+      ? "Past estimated date"
+      : item.daysLeft === 0
+      ? "Estimated today"
+      : `${item.daysLeft} day${item.daysLeft === 1 ? "" : "s"} left`;
 
-  const label = provisional
-    ? "Check label"
-    : item.daysLeft < 0
-    ? "Past estimated date"
-    : item.daysLeft === 0
-    ? "Estimated today"
-    : `${item.daysLeft} day${item.daysLeft === 1 ? "" : "s"} left`;
-
-  const storageLabel = provisional ? "Fridge · suggested" : item.storage;
+  // A "~" marks estimates that need checking against the package.
+  const label = item.needsReview && item.daysLeft >= 0 ? "~" + base : base;
 
   return `
     <article class="food-card">
@@ -315,19 +308,13 @@ function foodCard(item) {
         </summary>
 
         <div class="food-details">
-          <p>Store: ${escapeHtml(storageLabel)}</p>
-
-          ${
-            provisional
-              ? "<p>Check the printed date before relying on this estimate.</p>"
-              : `<p>Estimated date: ${escapeHtml(item.expiryDate)}</p>`
-          }
-
+          <p>Store: ${escapeHtml(item.storage)}</p>
+          <p>Estimated date: ${escapeHtml(item.expiryDate)}</p>
           <p>${escapeHtml(item.tip)}</p>
 
           ${
             item.needsReview
-              ? '<p class="storage-note">Suggested storage · check label</p>'
+              ? '<p class="storage-warning">⚠ Estimate only. Check the package label and printed date.</p>'
               : ""
           }
         </div>
@@ -350,10 +337,7 @@ function render(list) {
 
   const unassigned = [];
 
-  // Put items with verified catalogue estimates before unknown dates.
-  const rank = (item) => (needsCheck(item) ? Infinity : item.daysLeft);
-
-  const sorted = [...list].sort((a, b) => rank(a) - rank(b));
+  const sorted = [...list].sort((a, b) => a.daysLeft - b.daysLeft);
 
   for (const item of sorted) {
     const section = getStorageSection(item);
@@ -375,7 +359,7 @@ function render(list) {
   $("unassigned-list").innerHTML = unassigned.map(foodCard).join("");
 
   const soon = list.filter(
-    (item) => !needsCheck(item) && item.daysLeft >= 0 && item.daysLeft <= 2
+    (item) => item.daysLeft >= 0 && item.daysLeft <= 2
   ).length;
 
   $("pantry-count").textContent = list.length
@@ -489,9 +473,15 @@ function renderRecipes(recipes) {
         <div>
           <h3>${escapeHtml(recipe.title)}</h3>
           <p class="recipe-time">${escapeHtml(recipe.time)}</p>
-          <p class="recipe-uses">
-            Uses: ${recipe.usedExpiringItems.map(escapeHtml).join(", ")}
-          </p>
+
+          ${
+            recipe.usedExpiringItems.length
+              ? `<p class="recipe-uses">Uses soon-to-expire: ${recipe.usedExpiringItems
+                  .map(escapeHtml)
+                  .join(", ")}</p>`
+              : ""
+          }
+
           <span class="recipe-link">View recipe</span>
         </div>
       </summary>
@@ -555,7 +545,7 @@ $("cook").onclick = async () => {
       body: JSON.stringify({
         items: items.map((item) => ({
           name: item.name,
-          daysLeft: needsCheck(item) ? null : item.daysLeft,
+          daysLeft: item.needsReview ? null : item.daysLeft,
         })),
         focusAreas: window.pantryHealth?.getFocusAreas() ?? [],
       }),
