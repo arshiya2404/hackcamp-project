@@ -64,51 +64,51 @@
 
 
     document.getElementById("cook").onclick = async () => {
-  document.getElementById("cook-status").textContent = "Cooking up ideas...";
-  try {
-    const res = await fetch("/api/recipes", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(items.map(i => ({ name: i.name, daysLeft: i.daysLeft })))
-    });
-    if (!res.ok) throw new Error("Server error " + res.status);
-    const recipes = await res.json();
-    document.getElementById("recipes").innerHTML = recipes.map(r => `
-  <div class="bg-white rounded-xl p-4 shadow">
-    <p class="font-semibold">
-      ${escapeHtml(r.title)}
-      <span class="text-sm text-gray-500">
-        · ${escapeHtml(r.time)}
-      </span>
-    </p>
-    <p class="text-sm text-green-700">
-      Uses: ${r.usedExpiringItems.map(escapeHtml).join(", ")}
-    </p>
-    <p class="text-sm mt-1">
-      ${r.ingredients.map(escapeHtml).join(", ")}
-    </p>
-    <ol class="list-decimal ml-5 text-sm mt-1">
-      ${r.steps.map(s => `<li>${escapeHtml(s)}</li>`).join("")}
-    </ol>
-  </div>
+    document.getElementById("cook-status").textContent = "Cooking up ideas...";
+    try {
+        const res = await fetch("/api/recipes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(items.map(i => ({ name: i.name, daysLeft: i.daysLeft })))
+        });
+        if (!res.ok) throw new Error("Server error " + res.status);
+        const recipes = await res.json();
+        document.getElementById("recipes").innerHTML = recipes.map(r => `
+    <div class="bg-white rounded-xl p-4 shadow">
+        <p class="font-semibold">
+        ${escapeHtml(r.title)}
+        <span class="text-sm text-gray-500">
+            · ${escapeHtml(r.time)}
+        </span>
+        </p>
+        <p class="text-sm text-green-700">
+        Uses: ${r.usedExpiringItems.map(escapeHtml).join(", ")}
+        </p>
+        <p class="text-sm mt-1">
+        ${r.ingredients.map(escapeHtml).join(", ")}
+        </p>
+        <ol class="list-decimal ml-5 text-sm mt-1">
+        ${r.steps.map(s => `<li>${escapeHtml(s)}</li>`).join("")}
+        </ol>
+    </div>
 `).join("");
-    document.getElementById("cook-status").textContent = "";
-  } catch (err) {
-    document.getElementById("cook-status").textContent = "Could not get recipes: " + err.message;
-  }
+        document.getElementById("cook-status").textContent = "";
+    } catch (err) {
+        document.getElementById("cook-status").textContent = "Could not get recipes: " + err.message;
+    }
 };
 
     async function loadSample() {
-  try {
-    const res = await fetch("/api/pantry/sample");
-    if (!res.ok) throw new Error("Server error " + res.status);
+        try {
+            const res = await fetch("/api/pantry/sample");
+            if (!res.ok) throw new Error("Server error " + res.status);
 
-    items = await res.json();
-    render(items);
-  } catch (err) {
-    document.getElementById("status").textContent =
-      "Could not load pantry: " + err.message;
-  }
+            items = await res.json();
+            render(items);
+        } catch (err) {
+            document.getElementById("status").textContent =
+            "Could not load pantry: " + err.message;
+        }
 }
 
     document.getElementById("file").onchange = async (e) => {
@@ -129,6 +129,6 @@
     };
 
     loadSample();
-  </script>
+</script>
 </body>
 </html>
