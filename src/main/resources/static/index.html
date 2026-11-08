@@ -29,18 +29,6 @@
           </p>
         </div>
 
-        <div class="upload-actions">
-          <label class="button button-secondary scan-button">
-            ＋ Scan receipt
-            <input
-              id="file"
-              type="file"
-              accept="image/jpeg,image/png,image/webp"
-              capture="environment"
-              class="hidden"
-            />
-          </label>
-
           <label class="button lab-upload-button">
             ＋ Upload lab report
             <input
@@ -128,6 +116,17 @@
           <p id="pantry-count" class="section-description"></p>
 
           <div class="pantry-actions">
+            <div class="upload-actions">
+          <label class="button button-secondary scan-button">
+            ＋ Scan receipt
+            <input
+              id="file"
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              capture="environment"
+              class="hidden"
+            />
+          </label>
             <button
               id="save-pantry"
               class="button button-secondary"
