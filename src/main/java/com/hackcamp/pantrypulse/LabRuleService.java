@@ -1,9 +1,11 @@
 package com.hackcamp.pantrypulse;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 
 import org.springframework.http.HttpStatus;
@@ -12,6 +14,11 @@ import org.springframework.web.server.ResponseStatusException;
 
 @Service
 public class LabRuleService {
+
+    public static final Set<String> SUPPORTED_FOCUS = Set.of(
+            "WATCH_SATURATED_FAT",
+            "WATCH_ADDED_SUGAR",
+            "DISCUSS_IRON_FOODS");
 
     private static final String A1C_SOURCE = "https://www.niddk.nih.gov/health-information/diagnostic-tests/a1c-test";
 
@@ -22,146 +29,176 @@ public class LabRuleService {
 
     private static final String GENERAL_SOURCE = "https://medlineplus.gov/lab-tests/";
 
+    public FocusProfile buildAutomatic(LabExtraction extraction) {
+        if (extraction == null || extraction.markers() == null) {
+            throw badRequest("The extracted report was incomplete.");
+        }
+
+        return createProfile(
+                extraction.markers(),
+                true,
+                "Food preferences were suggested from the report's extracted "
+                        + "flags. Check their accuracy and follow your clinician's "
+                        + "individual advice.");
+    }
+
+    // Retained so the older confirmation endpoint still works.
     public FocusProfile build(LabConfirmation request) {
-        validate(request);
+        if (request == null
+                || !Boolean.TRUE.equals(request.confirmed())
+                || request.conditionOrMedication() == null
+                || request.enableFoodFocus() == null) {
+            throw badRequest("The confirmation request was incomplete.");
+        }
+
+        boolean enabled = Boolean.TRUE.equals(request.enableFoodFocus())
+                && !Boolean.TRUE.equals(request.conditionOrMedication());
+
+        return createProfile(
+                request.markers(),
+                enabled,
+                enabled
+                        ? "Food preferences were created from reviewed report flags."
+                        : "Automatic food preferences are off.");
+    }
+
+    private FocusProfile createProfile(
+            List<LabMarker> markers,
+            boolean enabled,
+            String message) {
+
+        if (markers == null || markers.size() > 30) {
+            throw badRequest("A report may contain at most 30 results.");
+        }
+
+        Map<String, Integer> counts = new HashMap<>();
+
+        for (LabMarker marker : markers) {
+            if (marker == null
+                    || marker.name() == null
+                    || marker.name().isBlank()) {
+                throw badRequest("An extracted result has no test name.");
+            }
+
+            String canonical = canonicalName(marker.name());
+
+            if (!canonical.equals("unsupported")) {
+                counts.merge(canonical, 1, Integer::sum);
+            }
+        }
 
         List<LabCard> cards = new ArrayList<>();
         Set<String> focusAreas = new LinkedHashSet<>();
-        Set<String> seen = new LinkedHashSet<>();
 
-        boolean foodFocusAllowed = request.enableFoodFocus()
-                && !request.conditionOrMedication();
-
-        for (LabMarker marker : request.markers()) {
+        for (LabMarker marker : markers) {
             String canonical = canonicalName(marker.name());
-            String flag = marker.flag().toUpperCase(Locale.ROOT);
 
-            String duplicateKey = canonical.equals("unsupported")
-                    ? marker.name().trim().toLowerCase(Locale.ROOT)
-                    : canonical;
+            String flag = marker.flag() == null
+                    ? "UNKNOWN"
+                    : marker.flag().trim().toUpperCase(Locale.ROOT);
 
-            if (!seen.add(duplicateKey)) {
-                throw badRequest(
-                        "Keep only one current result per marker before confirming.");
+            if (!Set.of("HIGH", "LOW", "NORMAL", "UNKNOWN")
+                    .contains(flag)) {
+                flag = "UNKNOWN";
+            }
+
+            boolean complete = marker.value() != null
+                    && marker.value().signum() >= 0
+                    && marker.unit() != null
+                    && !marker.unit().isBlank()
+                    && marker.referenceRange() != null
+                    && !marker.referenceRange().isBlank();
+
+            boolean duplicate = counts.getOrDefault(canonical, 0) > 1;
+
+            if (duplicate) {
+                cards.add(new LabCard(
+                        marker.name(),
+                        flag,
+                        "Multiple results for this marker were extracted.",
+                        "No food preference was created for this marker. "
+                                + "Review the report with your clinician.",
+                        sourceFor(canonical)));
+                continue;
+            }
+
+            if (!complete && !canonical.equals("unsupported")) {
+                cards.add(new LabCard(
+                        marker.name(),
+                        flag,
+                        "Some information for this result was unreadable "
+                                + "or missing.",
+                        "No food preference was created from this result.",
+                        sourceFor(canonical)));
+                continue;
             }
 
             String explanation;
             String discussion;
-            String source;
 
             switch (canonical) {
-                case "hba1c" -> {
-                    explanation = "HbA1c reflects average blood glucose over roughly "
-                            + "the past three months. Some conditions can affect "
-                            + "how the result should be interpreted.";
-
-                    discussion = switch (flag) {
-                        case "HIGH" ->
-                            "Ask your clinician what this flagged result "
-                                    + "means for you and whether further testing "
-                                    + "or an individual eating plan is needed.";
-                        case "LOW" ->
-                            "Ask your clinician whether this low flag "
-                                    + "needs follow-up. No food change is inferred.";
-                        case "NORMAL" ->
-                            "The result was confirmed as not flagged. "
-                                    + "This does not replace your clinician's review.";
-                        default ->
-                            "No report flag was confirmed. "
-                                    + "No food focus has been created.";
-                    };
-
-                    source = A1C_SOURCE;
-                }
-
                 case "ldl" -> {
-                    explanation = "LDL carries cholesterol in the blood. "
-                            + "Your clinician interprets it alongside your "
-                            + "overall cardiovascular risk.";
+                    explanation = "LDL is a cholesterol-related blood marker.";
 
-                    discussion = switch (flag) {
-                        case "HIGH" ->
-                            "Ask whether choosing foods lower in saturated "
-                                    + "fat fits your care plan.";
-                        case "LOW" ->
-                            "Ask whether the low flag needs follow-up. "
-                                    + "No food change is inferred.";
-                        case "NORMAL" ->
-                            "No LDL food focus was created from this result.";
-                        default ->
-                            "Confirm the report flag with your clinician. "
-                                    + "No food focus was created.";
-                    };
+                    discussion = flag.equals("HIGH")
+                            ? "A saturated-fat food preference is available. "
+                                    + "Discuss the result with your clinician."
+                            : "No food preference was created for this flag.";
 
-                    source = LIPID_SOURCE;
-
-                    if (foodFocusAllowed && flag.equals("HIGH")) {
+                    if (enabled && flag.equals("HIGH")) {
                         focusAreas.add("WATCH_SATURATED_FAT");
                     }
                 }
 
                 case "triglycerides" -> {
-                    explanation = "Triglycerides are a type of fat in the blood. "
-                            + "Meal timing and other health factors can affect "
-                            + "how a result is interpreted.";
+                    explanation = "Triglycerides are a type of fat in the blood.";
 
-                    discussion = switch (flag) {
-                        case "HIGH" ->
-                            "Ask whether reducing added sugars fits your "
-                                    + "care plan and whether fasting status matters "
-                                    + "for this result.";
-                        case "LOW" ->
-                            "Ask whether the low flag needs follow-up. "
-                                    + "No food change is inferred.";
-                        case "NORMAL" ->
-                            "No triglyceride food focus was created.";
-                        default ->
-                            "No report flag was confirmed. "
-                                    + "No food focus was created.";
-                    };
+                    discussion = flag.equals("HIGH")
+                            ? "An added-sugar food preference is available. "
+                                    + "Meal timing and your health context can affect "
+                                    + "interpretation."
+                            : "No food preference was created for this flag.";
 
-                    source = LIPID_SOURCE;
-
-                    if (foodFocusAllowed && flag.equals("HIGH")) {
+                    if (enabled && flag.equals("HIGH")) {
                         focusAreas.add("WATCH_ADDED_SUGAR");
                     }
                 }
 
+                case "hba1c" -> {
+                    explanation = "HbA1c reflects average blood glucose over roughly "
+                            + "the past three months.";
+
+                    discussion = "Ask your clinician how to interpret this result. "
+                            + "No automatic food preference was created "
+                            + "from HbA1c alone.";
+                }
+
                 case "ferritin" -> {
-                    explanation = "Ferritin is a protein that stores iron. "
-                            + "A ferritin result alone does not explain "
-                            + "the cause of an abnormal result.";
+                    explanation = "Ferritin is a protein that stores iron.";
 
-                    discussion = switch (flag) {
-                        case "LOW" ->
-                            "Ask whether this indicates low iron stores "
-                                    + "and what follow-up is needed. Discuss "
-                                    + "iron-containing foods with your clinician.";
-                        case "HIGH" ->
-                            "High ferritin has several possible causes. "
-                                    + "Ask your clinician about follow-up. "
-                                    + "Do not infer a need to increase iron.";
-                        case "NORMAL" ->
-                            "No iron food focus was created.";
-                        default ->
-                            "No report flag was confirmed. "
-                                    + "No iron food focus was created.";
-                    };
+                    if (flag.equals("LOW")) {
+                        discussion = "Iron-containing food ideas are available. "
+                                + "Ask your clinician about the cause and "
+                                + "any follow-up needed.";
 
-                    source = FERRITIN_SOURCE;
-
-                    if (foodFocusAllowed && flag.equals("LOW")) {
-                        focusAreas.add("DISCUSS_IRON_FOODS");
+                        if (enabled) {
+                            focusAreas.add("DISCUSS_IRON_FOODS");
+                        }
+                    } else if (flag.equals("HIGH")) {
+                        discussion = "High ferritin has several possible causes. "
+                                + "No increase-iron preference was created. "
+                                + "Discuss follow-up with your clinician.";
+                    } else {
+                        discussion = "No iron food preference was created "
+                                + "for this flag.";
                     }
                 }
 
                 default -> {
-                    explanation = "This marker is outside PantryPulse's supported set.";
+                    explanation = "This marker is outside the supported set.";
 
-                    discussion = "Ask your clinician to explain this result. "
-                            + "No interpretation or food focus was generated.";
-
-                    source = GENERAL_SOURCE;
+                    discussion = "No interpretation or food preference was created. "
+                            + "Ask your clinician to explain this result.";
                 }
             }
 
@@ -170,21 +207,7 @@ public class LabRuleService {
                     flag,
                     explanation,
                     discussion,
-                    source));
-        }
-
-        String message;
-
-        if (request.conditionOrMedication()) {
-            message = "Food focus is paused because you reported a diagnosed "
-                    + "condition or medication use. Review food changes with "
-                    + "your clinician or pharmacist.";
-        } else if (!request.enableFoodFocus()) {
-            message = "Food focus is off. Your results have not changed "
-                    + "recipe preferences.";
-        } else {
-            message = "These are optional discussion prompts, not a diagnosis "
-                    + "or treatment plan. No numerical targets were created.";
+                    sourceFor(canonical)));
         }
 
         return new FocusProfile(
@@ -193,45 +216,13 @@ public class LabRuleService {
                 message);
     }
 
-    private void validate(LabConfirmation request) {
-        if (request == null ||
-                !Boolean.TRUE.equals(request.confirmed())) {
-            throw badRequest("Confirm that you checked the report values.");
-        }
-
-        if (request.conditionOrMedication() == null ||
-                request.enableFoodFocus() == null) {
-            throw badRequest(
-                    "Answer the medical-context and food-focus questions explicitly.");
-        }
-
-        if (request.markers() == null
-                || request.markers().isEmpty()
-                || request.markers().size() > 30) {
-            throw badRequest("Confirm between 1 and 30 results.");
-        }
-
-        Set<String> flags = Set.of("HIGH", "LOW", "NORMAL", "UNKNOWN");
-
-        for (LabMarker marker : request.markers()) {
-            if (marker == null
-                    || marker.name() == null
-                    || marker.name().isBlank()
-                    || marker.value() == null
-                    || marker.value().signum() < 0
-                    || marker.unit() == null
-                    || marker.unit().isBlank()
-                    || marker.referenceRange() == null
-                    || marker.referenceRange().isBlank()
-                    || marker.flag() == null
-                    || !flags.contains(
-                            marker.flag().toUpperCase(Locale.ROOT))) {
-                throw badRequest(
-                        "Each retained result needs a name, nonnegative "
-                                + "numeric value, unit, reference range, and valid flag. "
-                                + "Remove results that cannot be confirmed.");
-            }
-        }
+    private String sourceFor(String canonical) {
+        return switch (canonical) {
+            case "ldl", "triglycerides" -> LIPID_SOURCE;
+            case "hba1c" -> A1C_SOURCE;
+            case "ferritin" -> FERRITIN_SOURCE;
+            default -> GENERAL_SOURCE;
+        };
     }
 
     private String canonicalName(String name) {
@@ -259,6 +250,7 @@ public class LabRuleService {
 
     private ResponseStatusException badRequest(String message) {
         return new ResponseStatusException(
-                HttpStatus.BAD_REQUEST, message);
+                HttpStatus.BAD_REQUEST,
+                message);
     }
 }

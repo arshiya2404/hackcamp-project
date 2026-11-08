@@ -580,3 +580,181 @@ summary:focus-visible {
     grid-template-columns: 1fr;
   }
 }
+
+.upload-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 12px;
+  max-width: 390px;
+}
+
+.upload-actions .button {
+  min-height: 48px;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.upload-privacy {
+  width: 100%;
+  color: var(--muted);
+  font-size: 11px;
+  margin: 0;
+}
+
+.lab-upload-button {
+  cursor: pointer;
+}
+
+.lab-upload-button:focus-within {
+  outline: 3px solid #9bb688;
+  outline-offset: 3px;
+}
+
+.health-panel {
+  background: #e5efdc;
+  border: 1px solid #cadcbd;
+  border-radius: 18px;
+  padding: 24px;
+  margin: 0 0 30px;
+}
+
+.health-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.health-heading h2 {
+  font-size: 28px;
+  margin: 0 0 10px;
+}
+
+.health-eyebrow {
+  color: var(--muted);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  margin: 0 0 6px;
+}
+
+.health-text-button {
+  border: 0;
+  background: transparent;
+  color: #42674a;
+  font: inherit;
+  font-size: 12px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  padding: 4px 0;
+  cursor: pointer;
+}
+
+.health-text-button:disabled {
+  opacity: 0.5;
+  cursor: wait;
+}
+
+#health-status {
+  font-size: 13px;
+  margin: 0 0 12px;
+}
+
+.health-small {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.health-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  margin: 14px 0;
+}
+
+.health-focus-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.health-focus-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #fffefa;
+  border: 1px solid #cadcbd;
+  border-radius: 20px;
+  padding: 8px 13px;
+  font-size: 12px;
+}
+
+.health-findings {
+  border-top: 1px solid #cadcbd;
+  padding-top: 12px;
+  margin-top: 14px;
+}
+
+.health-findings summary {
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.health-finding {
+  padding: 12px 0;
+  border-bottom: 1px solid #cadcbd;
+}
+
+.health-finding h3 {
+  font: bold 13px Arial, sans-serif;
+  margin: 0 0 6px;
+}
+
+.health-finding p,
+.health-finding a {
+  font-size: 12px;
+}
+
+.health-finding p {
+  margin-bottom: 6px;
+}
+
+.health-finding a {
+  color: #42674a;
+}
+
+.recipe-health-notes {
+  background: #e5efdc;
+  border-radius: 8px;
+  margin-top: 14px;
+  padding: 12px;
+}
+
+.recipe-health-notes p {
+  color: #42674a;
+  font-size: 12px;
+  margin: 0;
+}
+
+.recipe-health-notes p + p {
+  margin-top: 7px;
+}
+
+@media (max-width: 700px) {
+  .upload-actions {
+    max-width: none;
+    justify-content: stretch;
+    flex-direction: column;
+  }
+
+  .upload-actions .button {
+    width: 100%;
+  }
+
+  .health-panel {
+    padding: 18px;
+  }
+}

@@ -1,21 +1,26 @@
 let items = [];
 let nextId = 1;
 let busy = false;
+window.pantryIsBusy = () => busy;
 let showingPantry = false;
 
 const SAVE_KEY = "pantrypulse.savedPantry";
 const SAVE_VERSION = 2;
 
-const $ = id => document.getElementById(id);
+const $ = (id) => document.getElementById(id);
 
 function escapeHtml(value) {
-  return String(value ?? "").replace(/[&<>"']/g, character => ({
-    "&": "&amp;",
-    "<": "&lt;",
-    ">": "&gt;",
-    '"': "&quot;",
-    "'": "&#39;"
-  })[character]);
+  return String(value ?? "").replace(
+    /[&<>"']/g,
+    (character) =>
+      ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;",
+      }[character])
+  );
 }
 
 function setStatus(message) {
@@ -31,10 +36,7 @@ function needsCheck(item) {
  * Using UTC for the calculation avoids daylight-saving errors.
  */
 function parseDay(value) {
-  if (
-    typeof value !== "string" ||
-    !/^\d{4}-\d{2}-\d{2}$/.test(value)
-  ) {
+  if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value)) {
     throw new Error("A pantry item has an invalid date.");
   }
 
@@ -74,7 +76,7 @@ function validateItems(list) {
     throw new Error("Invalid pantry data. Maximum 300 items.");
   }
 
-  return list.map(item => {
+  return list.map((item) => {
     if (
       !item ||
       typeof item.name !== "string" ||
@@ -91,7 +93,7 @@ function validateItems(list) {
 
     return {
       ...item,
-      daysLeft: daysUntil(item.expiryDate)
+      daysLeft: daysUntil(item.expiryDate),
     };
   });
 }
@@ -107,13 +109,25 @@ function clearRecipes() {
   $("cook-status").textContent = "";
 }
 
+window.addEventListener("pantry-health-changed", () => {
+  clearRecipes();
+});
+
+window.addEventListener("pantry-health-loading", (event) => {
+  if (event.detail) {
+    clearRecipes();
+  }
+
+  setBusy(Boolean(event.detail));
+});
+
 function replaceItems(list) {
   // Validate everything before changing the current inventory.
   const valid = validateItems(list);
 
-  items = valid.map(item => ({
+  items = valid.map((item) => ({
     ...item,
-    id: nextId++
+    id: nextId++,
   }));
 
   clearRecipes();
@@ -127,10 +141,12 @@ function addItems(list) {
     throw new Error("This pantry supports up to 300 items.");
   }
 
-  items.push(...valid.map(item => ({
-    ...item,
-    id: nextId++
-  })));
+  items.push(
+    ...valid.map((item) => ({
+      ...item,
+      id: nextId++,
+    }))
+  );
 
   clearRecipes();
   render(items);
@@ -139,18 +155,33 @@ function addItems(list) {
 function setBusy(value) {
   busy = value;
 
-  ["file", "save-pantry", "load-pantry", "cook"].forEach(id => {
-    $(id).disabled = value;
+  [
+    "file",
+    "lab-file",
+    "save-pantry",
+    "load-pantry",
+    "cook",
+    "clear-health",
+    "health-demo",
+  ].forEach((id) => {
+    const element = document.getElementById(id);
+
+    if (element) {
+      element.disabled = value;
+    }
   });
 
-  document.querySelectorAll(".remove-btn").forEach(button => {
-    button.disabled = value;
-  });
+  document
+    .querySelectorAll(".remove-btn, #health-panel input, #health-panel button")
+    .forEach((element) => {
+      element.disabled = value;
+    });
 
-  document.querySelector(".scan-button").setAttribute(
-    "aria-disabled",
-    String(value)
-  );
+  document
+    .querySelectorAll(".scan-button, .lab-upload-button")
+    .forEach((element) => {
+      element.setAttribute("aria-disabled", String(value));
+    });
 }
 
 async function requestJson(url, options = {}, timeout = 75000) {
@@ -160,15 +191,13 @@ async function requestJson(url, options = {}, timeout = 75000) {
   try {
     const response = await fetch(url, {
       ...options,
-      signal: controller.signal
+      signal: controller.signal,
     });
 
     const data = await response.json().catch(() => null);
 
     if (!response.ok) {
-      throw new Error(
-        data?.message || `Server error ${response.status}`
-      );
+      throw new Error(data?.message || `Server error ${response.status}`);
     }
 
     if (data === null) {
@@ -193,11 +222,9 @@ $("switch-storage").onclick = () => {
   $("fridge-view").hidden = showingPantry;
   $("pantry-view").hidden = !showingPantry;
 
-  $("storage-title").textContent =
-    showingPantry ? "My pantry" : "My fridge";
+  $("storage-title").textContent = showingPantry ? "My pantry" : "My fridge";
 
-  $("switch-storage").textContent =
-    showingPantry ? "← Fridge" : "Pantry →";
+  $("switch-storage").textContent = showingPantry ? "← Fridge" : "Pantry →";
 
   $("switch-storage").setAttribute(
     "aria-label",
@@ -255,22 +282,20 @@ function foodCard(item) {
   const color = provisional
     ? "expiry-review"
     : item.daysLeft <= 2
-      ? "expiry-red"
-      : item.daysLeft <= 5
-        ? "expiry-amber"
-        : "expiry-green";
+    ? "expiry-red"
+    : item.daysLeft <= 5
+    ? "expiry-amber"
+    : "expiry-green";
 
   const label = provisional
     ? "Check label"
     : item.daysLeft < 0
-      ? "Past estimated date"
-      : item.daysLeft === 0
-        ? "Estimated today"
-        : `${item.daysLeft} day${item.daysLeft === 1 ? "" : "s"} left`;
+    ? "Past estimated date"
+    : item.daysLeft === 0
+    ? "Estimated today"
+    : `${item.daysLeft} day${item.daysLeft === 1 ? "" : "s"} left`;
 
-  const storageLabel = provisional
-    ? "Fridge · suggested"
-    : item.storage;
+  const storageLabel = provisional ? "Fridge · suggested" : item.storage;
 
   return `
     <article class="food-card">
@@ -321,17 +346,15 @@ function render(list) {
     "fresh-list": [],
     "grains-list": [],
     "staples-list": [],
-    "counter-list": []
+    "counter-list": [],
   };
 
   const unassigned = [];
 
   // Put items with verified catalogue estimates before unknown dates.
-  const rank = item => needsCheck(item) ? Infinity : item.daysLeft;
+  const rank = (item) => (needsCheck(item) ? Infinity : item.daysLeft);
 
-  const sorted = [...list].sort(
-    (a, b) => rank(a) - rank(b)
-  );
+  const sorted = [...list].sort((a, b) => rank(a) - rank(b));
 
   for (const item of sorted) {
     const section = getStorageSection(item);
@@ -352,10 +375,8 @@ function render(list) {
   $("unassigned-section").hidden = unassigned.length === 0;
   $("unassigned-list").innerHTML = unassigned.map(foodCard).join("");
 
-  const soon = list.filter(item =>
-    !needsCheck(item) &&
-    item.daysLeft >= 0 &&
-    item.daysLeft <= 2
+  const soon = list.filter(
+    (item) => !needsCheck(item) && item.daysLeft >= 0 && item.daysLeft <= 2
   ).length;
 
   $("pantry-count").textContent = list.length
@@ -363,14 +384,12 @@ function render(list) {
     : "Scan a receipt to fill your fridge.";
 }
 
-document.addEventListener("click", event => {
+document.addEventListener("click", (event) => {
   const button = event.target.closest(".remove-btn");
 
   if (!button || busy) return;
 
-  items = items.filter(
-    item => item.id !== Number(button.dataset.id)
-  );
+  items = items.filter((item) => item.id !== Number(button.dataset.id));
 
   clearRecipes();
   render(items);
@@ -390,7 +409,7 @@ $("save-pantry").onclick = () => {
       JSON.stringify({
         version: SAVE_VERSION,
         savedAt: new Date().toISOString(),
-        items: saved
+        items: saved,
       })
     );
 
@@ -413,10 +432,7 @@ $("load-pantry").onclick = async () => {
 
     const data = JSON.parse(raw);
 
-    if (
-      data.version !== undefined &&
-      data.version !== SAVE_VERSION
-    ) {
+    if (data.version !== undefined && data.version !== SAVE_VERSION) {
       throw new Error("This save version is not supported.");
     }
 
@@ -432,8 +448,8 @@ $("load-pantry").onclick = async () => {
     if (data.version === undefined && loaded.length > 0) {
       const approved = confirm(
         "This is an older save. Recheck food matches and recalculate " +
-        "estimates from the original purchase dates? " +
-        "The original save remains until you click Save pantry."
+          "estimates from the original purchase dates? " +
+          "The original save remains until you click Save pantry."
       );
 
       if (!approved) return;
@@ -441,25 +457,29 @@ $("load-pantry").onclick = async () => {
       setBusy(true);
       setStatus("Rechecking older food matches...");
 
-      loaded = await requestJson("/api/pantry/recheck", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
+      loaded = await requestJson(
+        "/api/pantry/recheck",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(
+            loaded.map((item) => ({
+              name: item.name,
+              purchaseDate: item.purchaseDate,
+            }))
+          ),
         },
-        body: JSON.stringify(
-          loaded.map(item => ({
-            name: item.name,
-            purchaseDate: item.purchaseDate
-          }))
-        )
-      }, 15000);
+        15000
+      );
     }
 
     replaceItems(loaded);
 
     setStatus(
       `Loaded ${items.length} items. ` +
-      "Click Save pantry to keep this version."
+        "Click Save pantry to keep this version."
     );
   } catch (error) {
     setStatus("Could not load: " + errorText(error));
@@ -469,21 +489,27 @@ $("load-pantry").onclick = async () => {
 };
 
 function renderRecipes(recipes) {
-  const valid = Array.isArray(recipes) && recipes.every(recipe =>
-    recipe &&
-    typeof recipe.title === "string" &&
-    typeof recipe.time === "string" &&
-    ["usedExpiringItems", "ingredients", "steps"].every(key =>
-      Array.isArray(recipe[key]) &&
-      recipe[key].every(value => typeof value === "string")
-    )
-  );
+  const valid =
+    Array.isArray(recipes) &&
+    recipes.every(
+      (recipe) =>
+        recipe &&
+        typeof recipe.title === "string" &&
+        typeof recipe.time === "string" &&
+        ["usedExpiringItems", "ingredients", "steps"].every(
+          (key) =>
+            Array.isArray(recipe[key]) &&
+            recipe[key].every((value) => typeof value === "string")
+        )
+    );
 
   if (!valid) {
     throw new Error("The recipe response was incomplete.");
   }
 
-  $("recipes").innerHTML = recipes.map(recipe => `
+  $("recipes").innerHTML = recipes
+    .map(
+      (recipe) => `
     <details class="recipe-card">
       <summary>
         <div class="recipe-art" aria-hidden="true">
@@ -503,23 +529,37 @@ function renderRecipes(recipes) {
         </div>
       </summary>
 
+      ${
+        Array.isArray(recipe.healthNotes) && recipe.healthNotes.length
+          ? `
+      <div class="recipe-health-notes">
+        ${recipe.healthNotes
+          .map((note) => `<p>${escapeHtml(note)}</p>`)
+          .join("")}
+      </div>
+    `
+          : ""
+      }
+
       <div class="recipe-details">
         <h4>Ingredients</h4>
         <ul>
-          ${recipe.ingredients.map(value =>
-            `<li>${escapeHtml(value)}</li>`
-          ).join("")}
+          ${recipe.ingredients
+            .map((value) => `<li>${escapeHtml(value)}</li>`)
+            .join("")}
         </ul>
 
         <h4>Let’s make it</h4>
         <ol>
-          ${recipe.steps.map(value =>
-            `<li>${escapeHtml(value)}</li>`
-          ).join("")}
+          ${recipe.steps
+            .map((value) => `<li>${escapeHtml(value)}</li>`)
+            .join("")}
         </ol>
       </div>
     </details>
-  `).join("");
+  `
+    )
+    .join("");
 }
 
 $("cook").onclick = async () => {
@@ -537,19 +577,28 @@ $("cook").onclick = async () => {
   $("cook").textContent = "Finding recipes...";
   $("cook-status").textContent = "Cooking up ideas...";
 
+  const healthVersion = window.pantryHealth?.getVersion() ?? 0;
+
   try {
     const recipes = await requestJson("/api/recipes", {
       method: "POST",
       headers: {
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
       },
-      body: JSON.stringify(
-        items.map(item => ({
+      body: JSON.stringify({
+        items: items.map((item) => ({
           name: item.name,
-          daysLeft: needsCheck(item) ? null : item.daysLeft
-        }))
-      )
+          daysLeft: needsCheck(item) ? null : item.daysLeft,
+        })),
+        focusAreas: window.pantryHealth?.getFocusAreas() ?? [],
+      }),
     });
+
+    if (healthVersion !== (window.pantryHealth?.getVersion() ?? 0)) {
+      $("cook-status").textContent =
+        "Your health preferences changed. Generate a new recipe.";
+      return;
+    }
 
     renderRecipes(recipes);
 
@@ -557,15 +606,14 @@ $("cook").onclick = async () => {
       ? ""
       : "No recipes found. Try adding more ingredients.";
   } catch (error) {
-    $("cook-status").textContent =
-      "Could not get recipes: " + errorText(error);
+    $("cook-status").textContent = "Could not get recipes: " + errorText(error);
   } finally {
     setBusy(false);
     $("cook").textContent = "What should I cook? ↗";
   }
 };
 
-$("file").onchange = async event => {
+$("file").onchange = async (event) => {
   const file = event.target.files[0];
 
   if (!file || busy) return;
@@ -585,14 +633,15 @@ $("file").onchange = async event => {
   try {
     const added = await requestJson("/api/receipt", {
       method: "POST",
-      body: form
+      body: form,
     });
 
     addItems(added);
 
-    setStatus(added.length
-      ? `Added ${added.length} items. Check suggested storage and dates.`
-      : "No food items were found. Try a clearer image."
+    setStatus(
+      added.length
+        ? `Added ${added.length} items. Check suggested storage and dates.`
+        : "No food items were found. Try a clearer image."
     );
   } catch (error) {
     setStatus("Could not read receipt: " + errorText(error));
@@ -606,7 +655,7 @@ function refreshOpenPage() {
   if (busy) return;
 
   const changed = items.some(
-    item => item.daysLeft !== daysUntil(item.expiryDate)
+    (item) => item.daysLeft !== daysUntil(item.expiryDate)
   );
 
   if (changed) {

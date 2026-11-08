@@ -6,6 +6,7 @@
     <title>PantryPulse</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="/css/styles.css" />
+    <script src="/js/health.js" defer></script>
     <script src="/js/app.js" defer></script>
   </head>
   <body>
@@ -14,7 +15,7 @@
         <a class="brand" href="#">Pantry<span>Pulse</span></a>
         <nav class="header-links" aria-label="Main navigation">
           <span class="tagline">A little less waste</span>
-          <a href="/lab.html">Lab results →</a>
+          <a href="#health-panel">Health focus ↓</a>
         </nav>
       </header>
 
@@ -28,16 +29,88 @@
           </p>
         </div>
 
-        <label class="button button-secondary scan-button">
-          ＋ Scan a receipt
-          <input
-            id="file"
-            type="file"
-            accept="image/jpeg,image/png,image/webp"
-            capture="environment"
-            class="hidden"
-          />
-        </label>
+        <div class="upload-actions">
+          <label class="button button-secondary scan-button">
+            ＋ Scan receipt
+            <input
+              id="file"
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              capture="environment"
+              class="hidden"
+            />
+          </label>
+
+          <label class="button lab-upload-button">
+            ＋ Upload lab report
+            <input
+              id="lab-file"
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              class="hidden"
+            />
+          </label>
+        </div>
+      </section>
+
+      <section
+        id="health-panel"
+        class="health-panel"
+        aria-labelledby="health-title"
+      >
+        <div class="health-heading">
+          <div>
+            <p class="eyebrow">Food choices, with a little context</p>
+            <h2 id="health-title" class="section-title">Health focus</h2>
+          </div>
+
+          <button
+            id="clear-health"
+            class="button button-secondary"
+            type="button"
+            hidden
+          >
+            Clear report
+          </button>
+        </div>
+
+        <p class="section-description">
+          Upload a lab report to suggest food preferences for your recipes.
+          Automatic findings can contain mistakes and are not diagnoses.
+        </p>
+
+        <p class="hint">
+          The report image is sent to Google Gemini for extraction. Use a
+          fictional report when testing.
+        </p>
+
+        <p id="health-status" class="status" role="status"></p>
+
+        <div id="health-content" hidden>
+          <p id="health-origin" class="hint"></p>
+
+          <label class="health-toggle">
+            <input id="health-enabled" type="checkbox" checked />
+            Use these preferences when suggesting recipes
+          </label>
+
+          <div id="health-focus-options" class="health-focus-options"></div>
+
+          <details class="health-findings">
+            <summary>View extracted findings</summary>
+            <div id="health-findings-list"></div>
+          </details>
+
+          <p class="hint">
+            Check unexpected findings with your doctor. Follow any dietary
+            advice from your clinician, especially if you take medication or
+            have a diagnosed condition.
+          </p>
+        </div>
+
+        <button id="health-demo" class="button button-secondary" type="button">
+          Try a fictional report
+        </button>
       </section>
 
       <p id="status" class="status" role="status"></p>

@@ -93,4 +93,39 @@ public class LabController {
                         "Fictional report range: 15–150",
                         "LOW")));
     }
+
+    @PostMapping("/scan")
+    public ResponseEntity<?> scan(
+            @RequestParam("image") MultipartFile image) {
+
+        try {
+            LabExtraction extraction = extractionService.extract(image);
+
+            return ResponseEntity.ok(
+                    ruleService.buildAutomatic(extraction));
+        } catch (ResponseStatusException exception) {
+            return ResponseEntity
+                    .status(exception.getStatusCode())
+                    .body(Map.of(
+                            "message",
+                            exception.getReason() == null
+                                    ? "The report could not be processed."
+                                    : exception.getReason()));
+        } catch (Exception exception) {
+            log.warn(
+                    "Automatic lab scan failed: {}",
+                    exception.getClass().getSimpleName());
+
+            return ResponseEntity.status(HttpStatus.BAD_GATEWAY)
+                    .body(Map.of(
+                            "message",
+                            "Could not scan the report. Try a clearer image "
+                                    + "or use the fictional sample."));
+        }
+    }
+
+    @GetMapping("/sample-focus")
+    public FocusProfile sampleFocus() {
+        return ruleService.buildAutomatic(sample());
+    }
 }
