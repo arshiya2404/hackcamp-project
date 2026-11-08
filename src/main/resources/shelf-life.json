@@ -1,10 +1,533 @@
 [
-  {"name": "spinach", "storage": "fridge", "days": 5, "tip": "Keep in its container with a paper towel to absorb moisture."},
-  {"name": "milk", "storage": "fridge", "days": 7, "tip": "Store on a main shelf, not the door."},
-  {"name": "eggs", "storage": "fridge", "days": 28, "tip": "Keep in the carton on a shelf."},
-  {"name": "bananas", "storage": "counter", "days": 5, "tip": "Separate them to slow ripening."},
-  {"name": "chicken breast", "storage": "fridge", "days": 2, "tip": "Store on the bottom shelf to prevent drips."},
-  {"name": "ground beef", "storage": "fridge", "days": 2, "tip": "Keep sealed or freeze if not cooking immediately."},
-  {"name": "avocado", "storage": "counter", "days": 4, "tip": "Store at room temp until ripe, then move to fridge."},
-  {"name": "bell pepper", "storage": "fridge", "days": 10, "tip": "Store unwashed in the crisper drawer."}
+  {
+    "name": "white rice",
+    "storage": "pantry",
+    "days": 365,
+    "tip": "Dry uncooked rice only. Keep sealed in a cool, dry cupboard. Follow the package date; cooked rice needs different storage.",
+    "aliases": [
+      "rice",
+      "basmati rice",
+      "jasmine rice",
+      "long grain rice",
+      "short grain rice"
+    ]
+  },
+  {
+    "name": "brown rice",
+    "storage": "pantry",
+    "days": 180,
+    "tip": "Dry uncooked rice only. Keep airtight and cool. Follow the package date; whole-grain rice does not keep as long as white rice.",
+    "aliases": ["whole grain rice", "wholegrain rice"]
+  },
+  {
+    "name": "dry pasta",
+    "storage": "pantry",
+    "days": 365,
+    "tip": "For dried pasta, not fresh or cooked pasta. Keep dry and sealed; follow the package date.",
+    "aliases": [
+      "pasta",
+      "spaghetti",
+      "spaghetti pasta",
+      "uncooked spaghetti",
+      "dry spaghetti",
+      "dried spaghetti",
+      "uncooked pasta",
+      "penne",
+      "fusilli",
+      "macaroni",
+      "rigatoni",
+      "whole wheat pasta"
+    ]
+  },
+  {
+    "name": "rolled oats",
+    "storage": "pantry",
+    "days": 180,
+    "tip": "Dry oats only. Keep airtight and away from moisture. Use the package date when available.",
+    "aliases": [
+      "oats",
+      "oatmeal",
+      "porridge oats",
+      "quick oats",
+      "steel cut oats"
+    ]
+  },
+  {
+    "name": "quinoa",
+    "storage": "pantry",
+    "days": 180,
+    "tip": "Dry uncooked quinoa only. Keep airtight in a cool cupboard; follow the package date.",
+    "aliases": [
+      "white quinoa",
+      "red quinoa",
+      "tri colour quinoa",
+      "tricolor quinoa"
+    ]
+  },
+  {
+    "name": "bulgur",
+    "storage": "pantry",
+    "days": 180,
+    "tip": "Dry uncooked grain only. Keep sealed, cool and dry; follow the package date.",
+    "aliases": ["bulgur wheat", "bulghur", "cracked wheat"]
+  },
+  {
+    "name": "couscous",
+    "storage": "pantry",
+    "days": 180,
+    "tip": "Dry uncooked couscous only. Store airtight and follow the package date.",
+    "aliases": ["whole wheat couscous", "pearl couscous", "israeli couscous"]
+  },
+  {
+    "name": "wheat berries",
+    "storage": "pantry",
+    "days": 365,
+    "tip": "Dry whole wheat grain only. Keep in a sealed container away from moisture; follow the package date.",
+    "aliases": ["whole wheat grain", "whole wheat berries"]
+  },
+  {
+    "name": "white flour",
+    "storage": "pantry",
+    "days": 365,
+    "tip": "Keep sealed, cool and dry. Follow the package date. Raw flour should not be eaten without cooking.",
+    "aliases": [
+      "flour",
+      "all purpose flour",
+      "plain flour",
+      "bread flour",
+      "self raising flour"
+    ]
+  },
+  {
+    "name": "whole wheat flour",
+    "storage": "pantry",
+    "days": 180,
+    "tip": "Keep airtight and cool; follow the package date. Whole-grain flour keeps for less time than white flour.",
+    "aliases": ["wholemeal flour", "whole grain flour", "atta", "chapati flour"]
+  },
+  {
+    "name": "breakfast cereal",
+    "storage": "pantry",
+    "days": 180,
+    "tip": "Unopened planning estimate. Follow the package date and reseal well after opening.",
+    "aliases": [
+      "cereal",
+      "corn flakes",
+      "cornflakes",
+      "corn flakes cereal",
+      "cornflakes cereal",
+      "bran flakes"
+    ]
+  },
+  {
+    "name": "bread",
+    "storage": "counter",
+    "days": 4,
+    "tip": "Short quality-planning estimate. Follow the label and freeze surplus slices. Discard mouldy bread.",
+    "aliases": [
+      "whole wheat bread",
+      "wholemeal bread",
+      "white bread",
+      "sliced bread",
+      "sourdough",
+      "sourdough bread",
+      "brown bread"
+    ]
+  },
+  {
+    "name": "dry lentils",
+    "storage": "pantry",
+    "days": 365,
+    "tip": "Dry uncooked lentils only. Store airtight and dry. Cooked lentils need refrigeration.",
+    "aliases": [
+      "lentils",
+      "red lentils",
+      "green lentils",
+      "brown lentils",
+      "masoor dal"
+    ]
+  },
+  {
+    "name": "dry chickpeas",
+    "storage": "pantry",
+    "days": 365,
+    "tip": "Dry uncooked chickpeas only. Keep airtight and dry. Not the same as canned or cooked chickpeas.",
+    "aliases": ["dried chickpeas", "dry garbanzo beans", "dried garbanzo beans"]
+  },
+  {
+    "name": "dry beans",
+    "storage": "pantry",
+    "days": 365,
+    "tip": "Dry uncooked beans only. Store sealed and dry; prepare and cook according to package instructions.",
+    "aliases": [
+      "dried beans",
+      "dry kidney beans",
+      "dried kidney beans",
+      "dry black beans",
+      "dried black beans"
+    ]
+  },
+  {
+    "name": "canned chickpeas",
+    "storage": "pantry",
+    "days": 365,
+    "tip": "Unopened shelf-stable can only. Follow the label. After opening, refrigerate leftovers and use within 3–4 days.",
+    "aliases": ["tinned chickpeas", "canned garbanzo beans", "chickpeas canned"]
+  },
+  {
+    "name": "canned kidney beans",
+    "storage": "pantry",
+    "days": 365,
+    "tip": "Unopened shelf-stable can only. Follow the label. After opening, refrigerate leftovers and use within 3–4 days.",
+    "aliases": [
+      "tinned kidney beans",
+      "kidney beans canned",
+      "canned red kidney beans"
+    ]
+  },
+  {
+    "name": "canned black beans",
+    "storage": "pantry",
+    "days": 365,
+    "tip": "Unopened shelf-stable can only. Follow the label. After opening, refrigerate leftovers and use within 3–4 days.",
+    "aliases": ["tinned black beans", "black beans canned"]
+  },
+  {
+    "name": "canned corn",
+    "storage": "pantry",
+    "days": 365,
+    "tip": "Unopened shelf-stable can only. Follow the label. After opening, refrigerate leftovers and use within 3–4 days.",
+    "aliases": ["tinned corn", "canned sweetcorn", "canned sweet corn"]
+  },
+  {
+    "name": "canned tomatoes",
+    "storage": "pantry",
+    "days": 365,
+    "tip": "Unopened shelf-stable can only. Follow the label. Refrigerate after opening and follow the opened-product instructions.",
+    "aliases": [
+      "tinned tomatoes",
+      "canned diced tomatoes",
+      "canned crushed tomatoes",
+      "canned chopped tomatoes"
+    ]
+  },
+  {
+    "name": "canned tuna",
+    "storage": "pantry",
+    "days": 365,
+    "tip": "Unopened shelf-stable can only. Follow the label and refrigerate after opening.",
+    "aliases": [
+      "tinned tuna",
+      "tuna in water",
+      "tuna in oil",
+      "canned light tuna"
+    ]
+  },
+  {
+    "name": "canned soup",
+    "storage": "pantry",
+    "days": 365,
+    "tip": "Unopened shelf-stable can only. Follow the label. Refrigerate after opening and follow its storage instructions.",
+    "aliases": [
+      "tinned soup",
+      "canned vegetable soup",
+      "canned chicken soup",
+      "canned tomato soup"
+    ]
+  },
+  {
+    "name": "canned coconut milk",
+    "storage": "pantry",
+    "days": 180,
+    "tip": "Unopened shelf-stable can only. Follow the package date. Refrigerate after opening. Chilled coconut drinks are a different product.",
+    "aliases": [
+      "tinned coconut milk",
+      "coconut milk canned",
+      "canned coconut cream"
+    ]
+  },
+  {
+    "name": "jarred pasta sauce",
+    "storage": "pantry",
+    "days": 180,
+    "tip": "Unopened shelf-stable jar only. Follow the label. Refrigerate after opening and use within its stated time.",
+    "aliases": [
+      "pasta sauce",
+      "jarred tomato sauce",
+      "marinara sauce",
+      "spaghetti sauce"
+    ]
+  },
+  {
+    "name": "peanut butter",
+    "storage": "pantry",
+    "days": 180,
+    "tip": "Unopened planning estimate. Follow the label; some natural peanut butters require refrigeration after opening.",
+    "aliases": [
+      "smooth peanut butter",
+      "crunchy peanut butter",
+      "natural peanut butter"
+    ]
+  },
+  {
+    "name": "jam",
+    "storage": "pantry",
+    "days": 180,
+    "tip": "Unopened shelf-stable jar only. Follow the label, including refrigeration instructions after opening.",
+    "aliases": [
+      "strawberry jam",
+      "raspberry jam",
+      "fruit jam",
+      "marmalade",
+      "fruit preserves"
+    ]
+  },
+  {
+    "name": "pickles",
+    "storage": "pantry",
+    "days": 180,
+    "tip": "Only for unopened shelf-stable pickles. Refrigerated pickles must stay refrigerated. Follow the label after opening.",
+    "aliases": [
+      "shelf stable pickles",
+      "jarred gherkins",
+      "shelf stable dill pickles"
+    ]
+  },
+  {
+    "name": "olive oil",
+    "storage": "pantry",
+    "days": 180,
+    "tip": "Unopened quality-planning estimate. Keep tightly closed away from heat and light; follow the package date.",
+    "aliases": ["extra virgin olive oil", "evoo"]
+  },
+  {
+    "name": "vegetable oil",
+    "storage": "pantry",
+    "days": 180,
+    "tip": "Unopened quality-planning estimate. Store away from heat and light; follow the package date.",
+    "aliases": ["canola oil", "sunflower oil", "rapeseed oil"]
+  },
+  {
+    "name": "raisins",
+    "storage": "pantry",
+    "days": 180,
+    "tip": "Unopened planning estimate. Keep sealed and dry; follow the package date.",
+    "aliases": ["sultanas", "dried raisins"]
+  },
+  {
+    "name": "almonds",
+    "storage": "pantry",
+    "days": 90,
+    "tip": "Short quality-planning estimate. Keep sealed and cool; follow the label. Refrigeration can help preserve quality.",
+    "aliases": ["whole almonds", "sliced almonds", "flaked almonds"]
+  },
+  {
+    "name": "spinach",
+    "storage": "fridge",
+    "days": 4,
+    "tip": "Quality-planning estimate. Follow bag instructions and printed dates. Keep refrigerated and avoid excess moisture.",
+    "aliases": ["baby spinach", "fresh spinach"]
+  },
+  {
+    "name": "lettuce",
+    "storage": "fridge",
+    "days": 5,
+    "tip": "Quality-planning estimate. Keep refrigerated in the crisper. Follow package instructions for bagged leaves.",
+    "aliases": ["romaine lettuce", "iceberg lettuce", "little gem lettuce"]
+  },
+  {
+    "name": "kale",
+    "storage": "fridge",
+    "days": 5,
+    "tip": "Quality-planning estimate. Keep refrigerated and prevent excess moisture.",
+    "aliases": ["curly kale", "baby kale"]
+  },
+  {
+    "name": "broccoli",
+    "storage": "fridge",
+    "days": 4,
+    "tip": "Quality-planning estimate. Keep refrigerated; wash before preparation.",
+    "aliases": ["fresh broccoli", "broccoli florets"]
+  },
+  {
+    "name": "carrots",
+    "storage": "fridge",
+    "days": 14,
+    "tip": "Quality-planning estimate. Remove leafy tops and keep refrigerated. Follow package dates for prepared carrots.",
+    "aliases": ["carrot", "baby carrots"]
+  },
+  {
+    "name": "bell pepper",
+    "storage": "fridge",
+    "days": 7,
+    "tip": "Quality-planning estimate. Keep in the crisper and wash before preparation.",
+    "aliases": [
+      "bell peppers",
+      "red pepper",
+      "green pepper",
+      "yellow pepper",
+      "capsicum",
+      "sweet pepper"
+    ]
+  },
+  {
+    "name": "cucumber",
+    "storage": "fridge",
+    "days": 5,
+    "tip": "Quality-planning estimate. Keep refrigerated; cut cucumber needs different handling.",
+    "aliases": ["cucumbers", "english cucumber", "mini cucumbers"]
+  },
+  {
+    "name": "mushrooms",
+    "storage": "fridge",
+    "days": 4,
+    "tip": "Quality-planning estimate. Refrigerate in a paper bag or follow package instructions.",
+    "aliases": [
+      "mushroom",
+      "button mushrooms",
+      "cremini mushrooms",
+      "chestnut mushrooms"
+    ]
+  },
+  {
+    "name": "strawberries",
+    "storage": "fridge",
+    "days": 3,
+    "tip": "Quality-planning estimate. Refrigerate in a ventilated container; rinse before eating.",
+    "aliases": ["strawberry", "fresh strawberries"]
+  },
+  {
+    "name": "blueberries",
+    "storage": "fridge",
+    "days": 5,
+    "tip": "Quality-planning estimate. Refrigerate in a ventilated container; rinse before eating.",
+    "aliases": ["blueberry", "fresh blueberries"]
+  },
+  {
+    "name": "apples",
+    "storage": "fridge",
+    "days": 14,
+    "tip": "Quality-planning estimate. Store refrigerated in a ventilated bag, separate from sensitive vegetables.",
+    "aliases": ["apple", "gala apples", "fuji apples", "granny smith apples"]
+  },
+  {
+    "name": "bananas",
+    "storage": "counter",
+    "days": 4,
+    "tip": "Ripeness-dependent planning estimate. Keep at room temperature. Freeze peeled surplus fruit.",
+    "aliases": ["banana", "loose bananas"]
+  },
+  {
+    "name": "avocado",
+    "storage": "counter",
+    "days": 3,
+    "tip": "Assumes unripe whole fruit. Ripen at room temperature, then refrigerate. The estimate changes with ripeness.",
+    "aliases": ["avocados", "hass avocado", "hass avocados"]
+  },
+  {
+    "name": "tomatoes",
+    "storage": "counter",
+    "days": 4,
+    "tip": "Assumes whole fruit still ripening. Move to the fridge when ripe. Cut tomatoes need refrigeration.",
+    "aliases": ["tomato", "cherry tomatoes", "grape tomatoes", "roma tomatoes"]
+  },
+  {
+    "name": "potatoes",
+    "storage": "pantry",
+    "days": 14,
+    "tip": "Quality-planning estimate. Store whole potatoes in a cool, dark, ventilated place, away from onions.",
+    "aliases": ["potato", "white potatoes", "russet potatoes", "baby potatoes"]
+  },
+  {
+    "name": "onions",
+    "storage": "pantry",
+    "days": 21,
+    "tip": "Whole dry onions only. Keep in a cool, dry, ventilated place. Cut onions need refrigeration.",
+    "aliases": [
+      "onion",
+      "brown onions",
+      "yellow onions",
+      "red onions",
+      "white onions"
+    ]
+  },
+  {
+    "name": "garlic",
+    "storage": "pantry",
+    "days": 21,
+    "tip": "Whole unpeeled garlic only. Store in a cool, dry, ventilated place. Prepared garlic needs different handling.",
+    "aliases": ["garlic bulb", "garlic bulbs", "whole garlic"]
+  },
+  {
+    "name": "milk",
+    "storage": "fridge",
+    "days": 5,
+    "tip": "Placeholder planning estimate. The printed date and opened-product instructions take priority. Keep refrigerated on a main shelf.",
+    "aliases": [
+      "whole milk",
+      "skim milk",
+      "skimmed milk",
+      "semi skimmed milk",
+      "2 percent milk",
+      "1 percent milk"
+    ]
+  },
+  {
+    "name": "eggs",
+    "storage": "fridge",
+    "days": 21,
+    "tip": "Raw shell eggs only. Keep refrigerated in the carton and follow the printed date.",
+    "aliases": ["egg", "large eggs", "medium eggs", "free range eggs"]
+  },
+  {
+    "name": "chicken breast",
+    "storage": "fridge",
+    "days": 1,
+    "tip": "Raw fresh chicken only. Cook or freeze promptly. Keep sealed on the bottom shelf and follow the use-by label.",
+    "aliases": [
+      "chicken breasts",
+      "raw chicken breast",
+      "boneless chicken breast",
+      "chicken breast fillets"
+    ]
+  },
+  {
+    "name": "ground beef",
+    "storage": "fridge",
+    "days": 1,
+    "tip": "Raw fresh ground beef only. Cook or freeze promptly. Keep sealed on the bottom shelf and follow the use-by label.",
+    "aliases": [
+      "minced beef",
+      "beef mince",
+      "lean ground beef",
+      "ground hamburger"
+    ]
+  },
+  {
+    "name": "canned beans",
+    "storage": "pantry",
+    "days": 365,
+    "tip": "Assumes an unopened shelf-stable can. Follow the printed label. Refrigerate after opening and follow the opened-product instructions.",
+    "aliases": [
+      "tinned beans",
+      "canned mixed beans",
+      "mixed beans canned",
+      "canned white beans",
+      "canned cannellini beans",
+      "canned baked beans",
+      "baked beans"
+    ]
+  },
+  {
+    "name": "frozen peas",
+    "storage": "freezer",
+    "days": 90,
+    "tip": "A quality-planning reminder, not a safety deadline. Keep frozen and follow the package date and instructions. This estimate does not apply after thawing.",
+    "aliases": [
+      "frozen green peas",
+      "frozen garden peas",
+      "frozen petit pois",
+      "peas frozen"
+    ]
+  }
 ]

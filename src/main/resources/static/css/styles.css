@@ -528,3 +528,8 @@ h3 {
   padding: 8px 14px;
   font-size: 12px;
 }
+
+.storage-note {
+  color: var(--muted);
+  font-size: 11px;
+}

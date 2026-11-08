@@ -1,5 +1,11 @@
 package com.hackcamp.pantrypulse;
 
-public record ShelfLifeEntry(String name, String storage, int days, String tip) {
-    
+import java.util.List;
+
+public record ShelfLifeEntry(
+        String name,
+        String storage,
+        int days,
+        String tip,
+        List<String> aliases) {
 }

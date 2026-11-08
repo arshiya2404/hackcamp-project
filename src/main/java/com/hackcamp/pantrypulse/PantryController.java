@@ -17,10 +17,9 @@ public class PantryController {
     public List<FoodItem> sample() {
         LocalDate today = LocalDate.now();
         return List.of(
-            shelfLife.createItem("Spinach", today.minusDays(4)),
-            shelfLife.createItem("Milk", today.minusDays(1)),
-            shelfLife.createItem("Eggs", today),
-            shelfLife.createItem("Dragonfruit", today)
-        );
+                shelfLife.createItem("Spinach", today.minusDays(4)),
+                shelfLife.createItem("Milk", today.minusDays(1)),
+                shelfLife.createItem("Eggs", today),
+                shelfLife.createItem("Dragonfruit", today));
     }
 }

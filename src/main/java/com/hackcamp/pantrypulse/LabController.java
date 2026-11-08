@@ -21,8 +21,7 @@ import org.springframework.web.server.ResponseStatusException;
 @RequestMapping("/api/labs")
 public class LabController {
 
-    private static final Logger log =
-        LoggerFactory.getLogger(LabController.class);
+    private static final Logger log = LoggerFactory.getLogger(LabController.class);
 
     private final LabExtractionService extractionService;
     private final LabRuleService ruleService;
@@ -41,26 +40,23 @@ public class LabController {
             return ResponseEntity.ok(extractionService.extract(image));
         } catch (ResponseStatusException exception) {
             return ResponseEntity
-                .status(exception.getStatusCode())
-                .body(Map.of(
-                    "message",
-                    exception.getReason() == null
-                        ? "Invalid report upload."
-                        : exception.getReason()
-                ));
+                    .status(exception.getStatusCode())
+                    .body(Map.of(
+                            "message",
+                            exception.getReason() == null
+                                    ? "Invalid report upload."
+                                    : exception.getReason()));
         } catch (Exception exception) {
             // Avoid logging report contents or upstream response bodies.
             log.warn(
-                "Lab extraction failed: {}",
-                exception.getClass().getSimpleName()
-            );
+                    "Lab extraction failed: {}",
+                    exception.getClass().getSimpleName());
 
             return ResponseEntity.status(HttpStatus.BAD_GATEWAY)
-                .body(Map.of(
-                    "message",
-                    "Could not extract the report. Try a clearer image "
-                    + "or use the fictional sample."
-                ));
+                    .body(Map.of(
+                            "message",
+                            "Could not extract the report. Try a clearer image "
+                                    + "or use the fictional sample."));
         }
     }
 
@@ -71,13 +67,12 @@ public class LabController {
             return ResponseEntity.ok(ruleService.build(request));
         } catch (ResponseStatusException exception) {
             return ResponseEntity
-                .status(exception.getStatusCode())
-                .body(Map.of(
-                    "message",
-                    exception.getReason() == null
-                        ? "Please check the confirmed values."
-                        : exception.getReason()
-                ));
+                    .status(exception.getStatusCode())
+                    .body(Map.of(
+                            "message",
+                            exception.getReason() == null
+                                    ? "Please check the confirmed values."
+                                    : exception.getReason()));
         }
     }
 
@@ -85,20 +80,17 @@ public class LabController {
     public LabExtraction sample() {
         // Fictional report values and ranges for interface testing only.
         return new LabExtraction(List.of(
-            new LabMarker(
-                "LDL cholesterol",
-                new BigDecimal("3.8"),
-                "mmol/L",
-                "Fictional report range: below 3.0",
-                "HIGH"
-            ),
-            new LabMarker(
-                "Ferritin",
-                new BigDecimal("10"),
-                "ug/L",
-                "Fictional report range: 15–150",
-                "LOW"
-            )
-        ));
+                new LabMarker(
+                        "LDL cholesterol",
+                        new BigDecimal("3.8"),
+                        "mmol/L",
+                        "Fictional report range: below 3.0",
+                        "HIGH"),
+                new LabMarker(
+                        "Ferritin",
+                        new BigDecimal("10"),
+                        "ug/L",
+                        "Fictional report range: 15–150",
+                        "LOW")));
     }
 }

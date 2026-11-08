@@ -12,7 +12,8 @@ public class FoodItem {
     private boolean needsReview;
 
     // Constructs a new FoodItem with full details
-    public FoodItem(String name, LocalDate purchaseDate, int shelfLifeDays, String storage, String tip, boolean needsReview) {
+    public FoodItem(String name, LocalDate purchaseDate, int shelfLifeDays, String storage, String tip,
+            boolean needsReview) {
         this.name = name;
         this.purchaseDate = purchaseDate;
         this.shelfLifeDays = shelfLifeDays;

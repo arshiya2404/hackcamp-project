@@ -1,5 +1,5 @@
 let items = [];
-let nextId = 1; 
+let nextId = 1;
 const SAVE_KEY = "pantrypulse.savedPantry";
 
 let showingPantry = false;
@@ -60,12 +60,19 @@ function getStorageSection(item) {
   const storage = String(item.storage ?? "").toLowerCase();
   const name = String(item.name ?? "").toLowerCase();
 
+  if (storage === "review" || storage === "unknown") {
+    return "fridge-list";
+  }
+
+  if (/freez|frozen/.test(storage)) {
+    return "freezer-list";
+  }
+
   const isProduce =
-    /\b(spinach|lettuce|kale|broccoli|carrot|carrots|pepper|peppers|cucumber|berries|strawberries|blueberries|apple|apples|avocado|avocados|banana|bananas|dragonfruit|tomato|tomatoes|orange|oranges|grape|grapes)\b/.test(
+    /\b(spinach|lettuce|kale|broccoli|carrots?|peppers?|capsicum|cucumbers?|mushrooms?|berries|strawberries|strawberry|blueberries|blueberry|apples?|avocados?|bananas?|dragonfruit|tomatoes|tomato|oranges?|grapes?|potatoes|potato|onions?|garlic)\b/.test(
       name
     );
 
-  // Storage takes priority: frozen vegetables belong in the freezer.
   if (/freez|frozen/.test(storage)) {
     return "freezer-list";
   }
@@ -75,14 +82,24 @@ function getStorageSection(item) {
   }
 
   if (/pantry|cupboard|counter|room temp|shelf/.test(storage)) {
-    if (isProduce) {
+    // Packaged products should not be grouped as fresh produce.
+    const isPackaged =
+      /\b(canned|tinned|jarred|sauce|jam|preserves|pickles)\b/.test(name);
+
+    if (isProduce && !isPackaged) {
       return "counter-list";
     }
 
     const isGrain =
-      /\b(rice|pasta|bread|oats|oatmeal|cereal|flour|quinoa)\b/.test(name);
+      /\b(rice|pasta|spaghetti|penne|fusilli|macaroni|rigatoni|bread|sourdough|oats|oatmeal|porridge|cereal|cornflakes|flour|atta|quinoa|bulgur|bulghur|couscous|wheat)\b/.test(
+        name
+      );
 
-    return isGrain ? "grains-list" : "staples-list";
+    if (isGrain && !isPackaged) {
+      return "grains-list";
+    }
+
+    return "staples-list";
   }
 
   return null;
@@ -103,6 +120,13 @@ function foodCard(item) {
       ? "Estimated today"
       : `${item.daysLeft} day${item.daysLeft === 1 ? "" : "s"} left`;
 
+  const needsStorageCheck =
+    item.storage === "review" || item.storage === "unknown";
+
+  const storageLabel = needsStorageCheck ? "Fridge · suggested" : item.storage;
+
+  const dateLabel = needsStorageCheck ? "Check label" : label;
+
   return `
     <article class="food-card">
     <button type="button" class="remove-btn" data-id="${item.id}"
@@ -114,17 +138,23 @@ function foodCard(item) {
           </span>
 
           <span class="expiry-chip ${color}">
-            ${escapeHtml(label)}
+            ${escapeHtml(dateLabel)}
           </span>
         </summary>
 
         <div class="food-details">
-          <p>Store: ${escapeHtml(item.storage)}</p>
-          <p>Estimated date: ${escapeHtml(item.expiryDate)}</p>
+          <p>Store: ${escapeHtml(storageLabel)}</p>
+          ${
+            needsStorageCheck
+              ? "<p>Set the date from your package label.</p>"
+              : `<p>Estimated date: ${escapeHtml(item.expiryDate)}</p>`
+          }
           <p>${escapeHtml(item.tip)}</p>
 
           ${
-            item.needsReview ? "<p>Please check this general estimate.</p>" : ""
+            item.needsReview
+              ? '<p class="storage-note">Suggested storage · check label</p>'
+              : ""
           }
         </div>
       </details>
