@@ -32,18 +32,6 @@ public class FoodItem {
         return ChronoUnit.DAYS.between(LocalDate.now(), getExpiryDate());
     }
 
-    // Returns RED (0-2 days or expired), AMBER (3-5 days), or GREEN (>5 days)
-    public String getColor() {
-        long daysLeft = getDaysLeft();
-        if (daysLeft <= 2) {
-            return "RED";
-        } else if (daysLeft <= 5) {
-            return "AMBER";
-        } else {
-            return "GREEN";
-        }
-    }
-
     // Returns the name of the food item
     public String getName() {
         return name;
@@ -72,26 +60,5 @@ public class FoodItem {
     // Checks if the item requires manual user review
     public boolean isNeedsReview() {
         return needsReview;
-    }
-
-    // Updates whether the item requires review
-    public void setNeedsReview(boolean needsReview) {
-        this.needsReview = needsReview;
-    }
-
-    // Returns a string representation of the food item
-    @Override
-    public String toString() {
-        return "FoodItem{" +
-                "name='" + name + '\'' +
-                ", purchaseDate=" + purchaseDate +
-                ", shelfLifeDays=" + shelfLifeDays +
-                ", storage='" + storage + '\'' +
-                ", tip='" + tip + '\'' +
-                ", needsReview=" + needsReview +
-                ", expiryDate=" + getExpiryDate() +
-                ", daysLeft=" + getDaysLeft() +
-                ", color=" + getColor() +
-                '}';
     }
 }

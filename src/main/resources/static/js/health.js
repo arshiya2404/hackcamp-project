@@ -60,7 +60,7 @@
     );
   }
 
-  function renderProfile(sample) {
+  function renderProfile() {
     get("health-content").hidden = false;
     get("clear-health").hidden = false;
 
@@ -72,9 +72,8 @@
       findingsSection.open = true;
     }
 
-    get("health-origin").textContent = sample
-      ? "Fictional sample · not real health information"
-      : "Automatically extracted from your report · check accuracy";
+    get("health-origin").textContent =
+      "Automatically extracted from your report · check accuracy";
 
     get("health-enabled").checked = true;
 
@@ -158,12 +157,12 @@
     }
   }
 
-  async function scanReport(file, sample = false) {
+  async function scanReport(file) {
     if (scanning || (window.pantryIsBusy && window.pantryIsBusy())) {
       return;
     }
 
-    if (!sample && file.size > 5 * 1024 * 1024) {
+    if (file.size > 5 * 1024 * 1024) {
       get("health-status").textContent =
         "Use a JPEG, PNG or WebP image smaller than 5 MB.";
 
@@ -174,30 +173,20 @@
     scanning = true;
     notifyLoading(true);
 
-    get("health-status").textContent = sample
-      ? "Loading fictional report..."
-      : "Scanning your report...";
+    get("health-status").textContent = "Scanning your report...";
 
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), 75000);
 
     try {
-      let response;
+      const form = new FormData();
+      form.append("image", file);
 
-      if (sample) {
-        response = await fetch("/api/labs/sample-focus", {
-          signal: controller.signal,
-        });
-      } else {
-        const form = new FormData();
-        form.append("image", file);
-
-        response = await fetch("/api/labs/scan", {
-          method: "POST",
-          body: form,
-          signal: controller.signal,
-        });
-      }
+      const response = await fetch("/api/labs/scan", {
+        method: "POST",
+        body: form,
+        signal: controller.signal,
+      });
 
       const data = await response.json().catch(() => null);
 
@@ -214,7 +203,7 @@
       profile = data;
       selected = new Set(data.focusAreas);
 
-      renderProfile(sample);
+      renderProfile();
       notifyChange();
 
       get("health-status").textContent =

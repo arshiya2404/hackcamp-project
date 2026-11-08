@@ -16,14 +16,12 @@ import org.springframework.web.server.ResponseStatusException;
 public class LabRuleService {
 
     public static final Set<String> SUPPORTED_FOCUS = Set.of(
-        "WATCH_SATURATED_FAT",
-        "WATCH_ADDED_SUGAR",
-        "DISCUSS_IRON_FOODS"
-    );
+            "WATCH_SATURATED_FAT",
+            "WATCH_ADDED_SUGAR",
+            "DISCUSS_IRON_FOODS");
 
     private static final Set<String> ALLOWED_FLAGS = Set.of(
-        "HIGH", "LOW", "NORMAL", "UNKNOWN"
-    );
+            "HIGH", "LOW", "NORMAL", "UNKNOWN");
 
     public FocusProfile buildAutomatic(LabExtraction extraction) {
         if (extraction == null || extraction.markers() == null) {
@@ -31,41 +29,12 @@ public class LabRuleService {
         }
 
         return createProfile(
-            extraction.markers(),
-            true,
-            "Findings reflect extracted report flags, not diagnoses. "
-                + "Check accuracy and follow your clinician's advice."
-        );
+                extraction.markers(),
+                "Findings reflect extracted report flags, not diagnoses. "
+                        + "Check accuracy and follow your clinician's advice.");
     }
 
-    // Preserves compatibility with the existing confirmation endpoint.
-    public FocusProfile build(LabConfirmation request) {
-        if (request == null
-                || !Boolean.TRUE.equals(request.confirmed())
-                || request.conditionOrMedication() == null
-                || request.enableFoodFocus() == null) {
-            throw badRequest("The confirmation request was incomplete.");
-        }
-
-        boolean enabled =
-            Boolean.TRUE.equals(request.enableFoodFocus())
-                && !Boolean.TRUE.equals(
-                    request.conditionOrMedication()
-                );
-
-        return createProfile(
-            request.markers(),
-            enabled,
-            enabled
-                ? "Food preferences reflect reviewed report flags."
-                : "Automatic food preferences are off."
-        );
-    }
-
-    private FocusProfile createProfile(
-            List<LabMarker> markers,
-            boolean enabled,
-            String message) {
+    private FocusProfile createProfile(List<LabMarker> markers, String message) {
 
         if (markers == null || markers.size() > 30) {
             throw badRequest("A report may contain at most 30 results.");
@@ -103,8 +72,7 @@ public class LabRuleService {
 
             // Keep duplicate findings visible, but do not automatically
             // choose a food preference from potentially conflicting results.
-            boolean canCreateFocus =
-                enabled && counts.getOrDefault(canonical, 0) == 1;
+            boolean canCreateFocus = counts.getOrDefault(canonical, 0) == 1;
 
             String explanation = switch (canonical) {
                 case "ldl" ->
@@ -172,9 +140,8 @@ public class LabRuleService {
                     && canCreateFocus) {
                 focusAreas.add("WATCH_SATURATED_FAT");
 
-                discussion +=
-                    " Saturated-fat choices will be considered "
-                    + "when suggesting recipes.";
+                discussion += " Saturated-fat choices will be considered "
+                        + "when suggesting recipes.";
             }
 
             if (canonical.equals("ferritin")
@@ -182,44 +149,39 @@ public class LabRuleService {
                     && canCreateFocus) {
                 focusAreas.add("DISCUSS_IRON_FOODS");
 
-                discussion +=
-                    " Iron-containing foods will be considered "
-                    + "when suggesting recipes.";
+                discussion += " Iron-containing foods will be considered "
+                        + "when suggesting recipes.";
             }
 
             if (canonical.equals("ferritin")
                     && flag.equals("HIGH")) {
-                discussion +=
-                    " An increase-iron preference has not been added.";
+                discussion += " An increase-iron preference has not been added.";
             }
 
             if (flag.equals("HIGH") || flag.equals("LOW")) {
-                discussion +=
-                    " Discuss the result with your clinician.";
+                discussion += " Discuss the result with your clinician.";
             }
 
             cards.add(new LabCard(
-                marker.name().trim(),
-                flag,
-                explanation,
-                discussion,
-                sourceFor(canonical)
-            ));
+                    marker.name().trim(),
+                    flag,
+                    explanation,
+                    discussion,
+                    sourceFor(canonical)));
         }
 
         return new FocusProfile(
-            List.copyOf(focusAreas),
-            List.copyOf(cards),
-            message
-        );
+                List.copyOf(focusAreas),
+                List.copyOf(cards),
+                message);
     }
 
     private boolean usable(LabMarker marker) {
         return marker != null
-            && marker.name() != null
-            && !marker.name().isBlank()
-            && marker.value() != null
-            && marker.value().signum() >= 0;
+                && marker.name() != null
+                && !marker.name().isBlank()
+                && marker.value() != null
+                && marker.value().signum() >= 0;
     }
 
     private String normalizeFlag(String flag) {
@@ -227,8 +189,7 @@ public class LabRuleService {
             return "UNKNOWN";
         }
 
-        String normalized =
-            flag.trim().toUpperCase(Locale.ROOT);
+        String normalized = flag.trim().toUpperCase(Locale.ROOT);
 
         normalized = switch (normalized) {
             case "H" -> "HIGH";
@@ -237,8 +198,8 @@ public class LabRuleService {
         };
 
         return ALLOWED_FLAGS.contains(normalized)
-            ? normalized
-            : "UNKNOWN";
+                ? normalized
+                : "UNKNOWN";
     }
 
     private String canonicalName(String name) {
@@ -247,7 +208,7 @@ public class LabRuleService {
         }
 
         String normalized = name.toLowerCase(Locale.ROOT)
-            .replaceAll("[^a-z0-9]", "");
+                .replaceAll("[^a-z0-9]", "");
 
         // Check specific cholesterol names before broader names.
         if (normalized.contains("nonhdl")) {
@@ -256,7 +217,7 @@ public class LabRuleService {
 
         if (normalized.contains("ratio")
                 && (normalized.contains("cholesterol")
-                    || normalized.contains("hdl"))) {
+                        || normalized.contains("hdl"))) {
             return "cholesterol_ratio";
         }
 
@@ -303,8 +264,7 @@ public class LabRuleService {
                 "plasmairon",
                 "ironplasma",
                 "fetotal",
-                "fe"
-            ).contains(normalized)) {
+                "fe").contains(normalized)) {
             return "iron";
         }
 
@@ -354,7 +314,7 @@ public class LabRuleService {
 
             case "hba1c" ->
                 "https://www.niddk.nih.gov/health-information/"
-                    + "diagnostic-tests/a1c-test";
+                        + "diagnostic-tests/a1c-test";
 
             case "ferritin" ->
                 "https://medlineplus.gov/lab-tests/ferritin-blood-test/";
@@ -375,8 +335,7 @@ public class LabRuleService {
 
     private ResponseStatusException badRequest(String message) {
         return new ResponseStatusException(
-            HttpStatus.BAD_REQUEST,
-            message
-        );
+                HttpStatus.BAD_REQUEST,
+                message);
     }
 }

@@ -4,7 +4,6 @@ import java.time.LocalDate;
 import java.util.List;
 
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -16,16 +15,6 @@ public class PantryController {
 
     public PantryController(ShelfLifeService shelfLife) {
         this.shelfLife = shelfLife;
-    }
-
-    @GetMapping("/api/pantry/sample")
-    public List<FoodItem> sample() {
-        LocalDate today = LocalDate.now();
-        return List.of(
-                shelfLife.createItem("Spinach", today.minusDays(4)),
-                shelfLife.createItem("Milk", today.minusDays(1)),
-                shelfLife.createItem("Eggs", today),
-                shelfLife.createItem("Dragonfruit", today));
     }
 
     public record StoredItem(

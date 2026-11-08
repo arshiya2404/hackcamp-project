@@ -7,6 +7,27 @@
   --border: #dce8dc;
 }
 
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+h1,
+h2,
+h3,
+h4,
+p,
+ul,
+ol {
+  margin-top: 0;
+}
+
+button,
+input {
+  font-family: inherit;
+}
+
 /* Base */
 
 body {
@@ -163,13 +184,6 @@ summary:focus-visible {
   min-height: 48px;
   text-decoration: none;
   white-space: nowrap;
-}
-
-.upload-privacy {
-  width: 100%;
-  color: var(--muted);
-  font-size: 11px;
-  margin: 0;
 }
 
 .lab-upload-button {
@@ -618,31 +632,6 @@ summary:focus-visible {
   margin: 0 0 10px;
 }
 
-.health-eyebrow {
-  color: var(--muted);
-  font-size: 10px;
-  text-transform: uppercase;
-  letter-spacing: 1.5px;
-  margin: 0 0 6px;
-}
-
-.health-text-button {
-  border: 0;
-  background: transparent;
-  color: #42674a;
-  font: inherit;
-  font-size: 12px;
-  text-decoration: underline;
-  text-underline-offset: 3px;
-  padding: 4px 0;
-  cursor: pointer;
-}
-
-.health-text-button:disabled {
-  opacity: 0.5;
-  cursor: wait;
-}
-
 #health-status {
   font-size: 13px;
   margin: 0 0 12px;
@@ -721,6 +710,14 @@ summary:focus-visible {
   padding-top: 18px;
   color: var(--muted);
   font-size: 11px;
+}
+
+.hidden {
+  display: none;
+}
+
+.space-y-3 > * + * {
+  margin-top: 12px;
 }
 
 /* Mobile */

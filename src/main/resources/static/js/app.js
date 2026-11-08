@@ -28,7 +28,7 @@ function setStatus(message) {
 }
 
 function needsCheck(item) {
-  return item.storage === "review" || item.storage === "unknown";
+  return item.storage === "review";
 }
 
 /*
@@ -235,7 +235,7 @@ function getStorageSection(item) {
   const storage = String(item.storage ?? "").toLowerCase();
   const name = String(item.name ?? "").toLowerCase();
 
-  if (storage === "review" || storage === "unknown") {
+  if (storage === "review") {
     return "fridge-list";
   }
 
@@ -418,7 +418,7 @@ $("save-pantry").onclick = () => {
   }
 };
 
-$("load-pantry").onclick = async () => {
+$("load-pantry").onclick = () => {
   if (busy) return;
 
   try {
@@ -431,47 +431,17 @@ $("load-pantry").onclick = async () => {
 
     const data = JSON.parse(raw);
 
-    if (data.version !== undefined && data.version !== SAVE_VERSION) {
+    if (data.version !== SAVE_VERSION) {
       throw new Error("This save version is not supported.");
     }
 
-    let loaded = validateItems(data.items);
+    const loaded = validateItems(data.items);
 
     if (
       items.length > 0 &&
       !confirm("Replace the current pantry with your saved pantry?")
     ) {
       return;
-    }
-
-    if (data.version === undefined && loaded.length > 0) {
-      const approved = confirm(
-        "This is an older save. Recheck food matches and recalculate " +
-          "estimates from the original purchase dates? " +
-          "The original save remains until you click Save pantry."
-      );
-
-      if (!approved) return;
-
-      setBusy(true);
-      setStatus("Rechecking older food matches...");
-
-      loaded = await requestJson(
-        "/api/pantry/recheck",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(
-            loaded.map((item) => ({
-              name: item.name,
-              purchaseDate: item.purchaseDate,
-            }))
-          ),
-        },
-        15000
-      );
     }
 
     replaceItems(loaded);
@@ -482,8 +452,6 @@ $("load-pantry").onclick = async () => {
     );
   } catch (error) {
     setStatus("Could not load: " + errorText(error));
-  } finally {
-    setBusy(false);
   }
 };
 
